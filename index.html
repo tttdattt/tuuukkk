@@ -2,81 +2,74 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title><!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>DAT PREMIUM HUB - Storage Edition</title>
+    <title>youtube見ながらゲーム！</title>
     <style>
-        :root { --accent: #a29bfe; --bg: #030305; --panel: rgba(20, 20, 25, 0.95); --glass: rgba(255, 255, 255, 0.05); }
+        :root { --accent: #a29bfe; --bg: #030305; --panel: rgba(20, 20, 25, 0.98); --glass: rgba(255, 255, 255, 0.08); }
         body { margin: 0; overflow: hidden; background: var(--bg); color: white; font-family: 'Inter', -apple-system, sans-serif; width: 100vw; height: 100vh; }
         
-        .container { display: flex; width: 100%; height: 100%; }
-        .side { flex: 1; height: 100%; position: relative; overflow: hidden; }
-        .video-side { background: #000; border-right: 1px solid rgba(255,255,255,0.05); }
-        .game-side { background: radial-gradient(circle at center, #0a0a15 0%, #030305 100%); }
-
-        /* メインURLバー */
-        .main-controls {
-            position: absolute; top: 20px; left: 20px; right: 20px; z-index: 10;
-            display: flex; gap: 10px; padding: 10px; background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(20px); border-radius: 12px; border: 1px solid var(--glass);
+        /* メインコンテナ */
+        .container { 
+            display: flex; width: 100%; height: 100%; 
+            padding: 25px; box-sizing: border-box; gap: 25px;
+            background: radial-gradient(circle at center, #11111d 0%, #030305 100%);
         }
 
-        .video-wrapper { width: 100%; height: 100%; }
+        /* 左右の角丸アイランド */
+        .side { 
+            flex: 1; height: 100%; position: relative; 
+            background: #000;
+            border-radius: 35px; 
+            border: 1px solid var(--glass);
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        }
+
+        .video-side { background: #000; display: flex; flex-direction: column; }
+        .video-wrapper { width: 100%; height: 100%; background: #000; }
         iframe { width: 100%; height: 100%; border: none; }
 
-        /* 設定ボタン */
-        .settings-trigger {
-            position: absolute; top: 25px; right: 25px; z-index: 100;
-            width: 45px; height: 45px; border-radius: 50%; background: var(--panel);
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            backdrop-filter: blur(10px); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); border: 1px solid var(--glass);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        /* ゲーム側 */
+        .game-side { background: #000; cursor: crosshair; }
+
+        /* コントロールバー（PASTE / PLAY 両方搭載） */
+        .main-controls {
+            position: absolute; top: 20px; left: 20px; right: 20px; z-index: 10;
+            display: flex; gap: 8px; padding: 10px; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(25px); border-radius: 20px; border: 1px solid var(--glass);
         }
-        .settings-trigger:hover { transform: rotate(90deg); background: var(--accent); }
 
-        /* サイドパネル */
-        .side-panel {
-            position: fixed; top: 0; right: -420px; width: 380px; height: 100%;
-            background: var(--panel); backdrop-filter: blur(50px); z-index: 95;
-            transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            box-shadow: -20px 0 50px rgba(0,0,0,0.8); padding: 90px 30px 30px;
-            display: flex; flex-direction: column; gap: 25px; border-left: 1px solid var(--glass);
-            box-sizing: border-box;
-        }
-        .side-panel.open { right: 0; }
-
-        /* UIパーツ */
-        .input-group { display: flex; flex-direction: column; gap: 12px; background: rgba(255,255,255,0.03); padding: 18px; border-radius: 18px; }
-        input { background: rgba(0,0,0,0.3); border: 1px solid var(--glass); color: white; padding: 12px; border-radius: 10px; outline: none; font-size: 0.85rem; }
-        .btn-row { display: flex; gap: 8px; }
-        .btn { flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-size: 0.75rem; transition: 0.2s; background: rgba(255,255,255,0.1); color: white; }
-        .btn:hover { background: var(--accent); color: #000; font-weight: bold; }
-
-        /* プレイリスト表示 */
-        .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .playlist-card { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 15px; border: 1px solid var(--glass); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .card-header h4 { margin: 0; font-size: 0.8rem; color: var(--accent); letter-spacing: 2px; }
-        .btn-del-list { font-size: 0.6rem; color: #ff7675; cursor: pointer; background: none; border: 1px solid rgba(255,118,117,0.3); border-radius: 4px; padding: 2px 5px; }
+        input { background: rgba(0,0,0,0.5); border: 1px solid var(--glass); color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 0.8rem; flex: 1; min-width: 0; }
         
-        .vid-item { 
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.75rem; padding: 8px; border-radius: 8px; transition: 0.2s; 
-        }
-        .vid-item:hover { background: rgba(255,255,255,0.05); }
-        .vid-name { flex: 1; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.6; }
-        .vid-name:hover { opacity: 1; color: var(--accent); }
-        .btn-del-vid { color: #555; cursor: pointer; margin-left: 10px; font-weight: bold; padding: 0 5px; }
-        .btn-del-vid:hover { color: #ff7675; }
+        /* ボタンサイズ調整 */
+        .btn-action { padding: 12px 18px; border-radius: 12px; border: none; cursor: pointer; font-size: 0.7rem; font-weight: bold; transition: 0.3s; color: white; white-space: nowrap; }
+        .btn-paste { background: rgba(255,255,255,0.1); }
+        .btn-play { background: var(--accent); color: #000; }
+        .btn-action:hover { transform: translateY(-2px); filter: brightness(1.2); }
 
-        /* ゲーム */
-        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .game-ui { position: absolute; top: 100px; right: 40px; text-align: right; pointer-events: none; z-index: 5; }
-        .score { font-size: 5rem; font-weight: 100; color: var(--accent); line-height: 1; opacity: 0.8; }
-        .combo { font-size: 1.2rem; color: #fff; opacity: 0.3; letter-spacing: 8px; margin-top: 5px; }
-        .reset-score { position: absolute; bottom: 30px; left: 30px; opacity: 0.3; cursor: pointer; font-size: 0.7rem; border: none; background: none; color: white; z-index: 5; }
+        /* ゲーム操作パネル */
+        .game-nav { position: absolute; top: 110px; left: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 5; }
+        .ctrl-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--glass); color: white; padding: 10px 15px; border-radius: 12px; cursor: pointer; backdrop-filter: blur(10px); transition: 0.2s; font-size: 0.65rem; letter-spacing: 1px; }
+        .ctrl-btn:hover { background: var(--accent); color: #000; }
+        .ctrl-btn.active { background: #55efc4; color: #000; }
+
+        .game-ui { position: absolute; top: 110px; right: 50px; text-align: right; pointer-events: none; z-index: 5; }
+        .score { font-size: 5.5rem; font-weight: 100; color: var(--accent); line-height: 1; opacity: 0.9; }
+        .combo { font-size: 1.2rem; color: #fff; opacity: 0.3; letter-spacing: 10px; margin-top: 5px; }
+
+        /* 設定パネル */
+        .settings-trigger { position: fixed; top: 45px; right: 45px; z-index: 100; width: 55px; height: 55px; border-radius: 50%; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(20px); border: 1px solid var(--glass); box-shadow: 0 10px 40px rgba(0,0,0,0.6); transition: 0.5s; }
+        .settings-trigger:hover { transform: rotate(180deg) scale(1.1); background: var(--accent); }
+        
+        .side-panel { position: fixed; top: 0; right: -420px; width: 380px; height: 100%; background: var(--panel); backdrop-filter: blur(50px); z-index: 110; transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 100px 30px 30px; border-left: 1px solid var(--glass); box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; }
+        .side-panel.open { right: 0; }
+        
+        .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .playlist-card { background: rgba(255,255,255,0.02); border-radius: 20px; padding: 18px; border: 1px solid var(--glass); }
+        .vid-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; padding: 10px; border-radius: 10px; transition: 0.2s; }
+        .vid-item:hover { background: rgba(255,255,255,0.05); }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -84,55 +77,54 @@
 <div class="container">
     <div class="side video-side">
         <div class="main-controls">
-            <input type="text" id="main-url" placeholder="YouTube URLをペースト...">
-            <button class="btn" onclick="quickPaste('main-url')">PASTE</button>
-            <button class="btn" style="background:var(--accent); color:#000;" onclick="loadFrom('main-url')">PLAY</button>
+            <input type="text" id="main-url" placeholder="Paste YouTube URL...">
+            <button class="btn-action btn-paste" onclick="quickPaste('main-url')">PASTE</button>
+            <button class="btn-action btn-play" onclick="loadFrom('main-url')">PLAY</button>
         </div>
         <div class="video-wrapper">
-            <iframe id="player" src="https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1&mute=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <iframe id="player" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
     </div>
 
     <div class="side game-side" id="game-container">
+        <div class="game-nav">
+            <button id="toggleGame" class="ctrl-btn" onclick="toggleGameState()">START</button>
+            <button class="ctrl-btn" onclick="resetGame()">RESET SCORE</button>
+        </div>
         <div class="game-ui">
             <div class="score" id="score">0</div>
             <div class="combo" id="combo">COMBO 0</div>
         </div>
         <canvas id="canvas"></canvas>
-        <button class="reset-score" onclick="resetGame()">RESET SCORE</button>
     </div>
 </div>
 
 <div class="settings-trigger" onclick="togglePanel()">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
 </div>
 
 <div class="side-panel" id="sidePanel">
-    <h3 style="margin:0; font-weight:200; letter-spacing:3px;">SETTINGS</h3>
-    <div class="input-group">
-        <input type="text" id="panel-url" placeholder="URLを追加または再生...">
-        <div class="btn-row">
-            <button class="btn" onclick="quickPaste('panel-url')">PASTE</button>
-            <button class="btn" onclick="loadFrom('panel-url')">PLAY</button>
+    <h3 style="margin:0; font-weight:200; letter-spacing:4px; text-align:center;">STORAGE</h3>
+    <div style="display:flex; flex-direction:column; gap:10px; background:rgba(255,255,255,0.03); padding:15px; border-radius:20px;">
+        <input type="text" id="panel-url" placeholder="YouTube URL...">
+        <div style="display:flex; gap:8px;">
+            <button class="btn-action btn-paste" style="flex:1" onclick="quickPaste('panel-url')">PASTE</button>
+            <button class="btn-action btn-play" style="flex:1" onclick="loadFrom('panel-url')">PLAY</button>
         </div>
-        <div class="btn-row">
-            <select id="target-list" style="flex:2; background:#000; color:white; border:1px solid var(--glass); border-radius:10px; padding:5px;"></select>
-            <button class="btn" style="background:#55efc4; color:#000; font-weight:bold;" onclick="saveToPlaylist()">ADD</button>
+        <div style="display:flex; gap:8px;">
+            <select id="target-list" style="flex:2; background:#000; color:white; border:1px solid var(--glass); border-radius:10px; padding:5px; outline:none;"></select>
+            <button class="btn-action btn-play" style="flex:1; background:#55efc4;" onclick="saveToPlaylist()">ADD</button>
         </div>
     </div>
     <div class="playlist-scroll" id="playlistArea"></div>
 </div>
 
 <script>
-    // --- Data Persistence (LocalStorage) ---
-    const STORAGE_KEY = 'dat_vfinal_db';
-    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || Array.from({length: 10}, (_, i) => ({ name: `Playlist ${i+1}`, vids: [] }));
-    
-    function saveDB() { 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); 
-        renderUI(); 
-    }
+    const STORAGE_KEY = 'dat_yt_hub_final_v3';
+    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || Array.from({length: 10}, (_, i) => ({ name: `List ${i+1}`, vids: [] }));
+    let isGameRunning = false;
 
+    function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); renderUI(); }
     function togglePanel() { document.getElementById('sidePanel').classList.toggle('open'); }
 
     function renderUI() {
@@ -142,43 +134,20 @@
         db.forEach((list, i) => {
             const opt = document.createElement('option'); opt.value = i; opt.innerText = list.name;
             sel.appendChild(opt);
-
-            const card = document.createElement('div');
-            card.className = 'playlist-card';
-            
-            const header = document.createElement('div');
-            header.className = 'card-header';
-            header.innerHTML = `<h4>${list.name.toUpperCase()}</h4>`;
-            const delListBtn = document.createElement('button');
-            delListBtn.className = 'btn-del-list';
-            delListBtn.innerText = 'Reset List';
-            delListBtn.onclick = () => { if(confirm('リストを空にしますか？')) { db[i].vids = []; saveDB(); } };
-            header.appendChild(delListBtn);
-            card.appendChild(header);
-
+            const card = document.createElement('div'); card.className = 'playlist-card';
+            card.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><h4 style="margin:0; color:var(--accent); font-size:0.8rem;">${list.name}</h4><span style="font-size:0.6rem; cursor:pointer; color:#ff7675;" onclick="resetList(${i})">RESET</span></div>`;
             list.vids.forEach((id, vIdx) => {
-                const item = document.createElement('div');
-                item.className = 'vid-item';
-                
-                const name = document.createElement('span');
-                name.className = 'vid-name';
-                name.innerText = `ID: ${id}`;
-                name.onclick = () => { playById(id); togglePanel(); };
-                
-                const delVidBtn = document.createElement('span');
-                delVidBtn.className = 'btn-del-vid';
-                delVidBtn.innerText = '×';
-                delVidBtn.onclick = (e) => { e.stopPropagation(); db[i].vids.splice(vIdx, 1); saveDB(); };
-
-                item.appendChild(name);
-                item.appendChild(delVidBtn);
+                const item = document.createElement('div'); item.className = 'vid-item';
+                item.innerHTML = `<span style="cursor:pointer; opacity:0.6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;" onclick="playById('${id}')">ID: ${id}</span><span style="color:#444; cursor:pointer; margin-left:10px;" onclick="delVid(${i},${vIdx})">×</span>`;
                 card.appendChild(item);
             });
             area.appendChild(card);
         });
     }
 
-    // --- Actions ---
+    function resetList(idx) { if(confirm('Listをリセットしますか？')) { db[idx].vids = []; saveDB(); } }
+    function delVid(lIdx, vIdx) { db[lIdx].vids.splice(vIdx, 1); saveDB(); }
+
     function extractID(url) {
         const reg = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
         const m = url.match(reg); return (m && m[7].length === 11) ? m[7] : null;
@@ -189,58 +158,54 @@
     function saveToPlaylist() {
         const id = extractID(document.getElementById('panel-url').value);
         const idx = document.getElementById('target-list').value;
-        if(id && db[idx].vids.length < 50) { 
-            db[idx].vids.push(id); 
-            saveDB(); 
-            document.getElementById('panel-url').value = ''; 
-        }
+        if(id) { db[idx].vids.push(id); saveDB(); document.getElementById('panel-url').value = ''; }
     }
 
-    // --- Game ---
+    // --- GAME ENGINE ---
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const container = document.getElementById('game-container');
     let w, h, score = 0, combo = 0, stars = [], particles = [];
 
     function initCanvas() { w = canvas.width = container.clientWidth; h = canvas.height = container.clientHeight; }
-    window.addEventListener('resize', initCanvas);
-    initCanvas();
+    window.addEventListener('resize', initCanvas); initCanvas();
+
+    function toggleGameState() {
+        isGameRunning = !isGameRunning;
+        const btn = document.getElementById('toggleGame');
+        btn.innerText = isGameRunning ? 'PAUSE' : 'START';
+        btn.classList.toggle('active', isGameRunning);
+    }
 
     class Star {
         constructor() { this.init(); }
-        init() {
-            this.x = Math.random() * w; this.y = h + Math.random() * 200;
-            this.r = Math.random() * 10 + 8; this.v = -(Math.random() * 2 + 1);
-            this.h = 240 + Math.random() * 40;
-        }
-        update() { this.y += this.v; if(this.y < -50) this.init(); }
+        init() { this.x = Math.random() * w; this.y = h + 100; this.r = Math.random() * 12 + 8; this.v = -(Math.random() * 2.5 + 1.5); this.h = 240 + Math.random() * 40; }
+        update() { if(!isGameRunning) return; this.y += this.v; if(this.y < -50) this.init(); }
         draw() {
-            ctx.shadowBlur = 25; ctx.shadowColor = `hsla(${this.h},100%,70%,0.5)`;
-            ctx.fillStyle = `hsla(${this.h},100%,90%,0.9)`;
+            ctx.shadowBlur = 35; ctx.shadowColor = `hsla(${this.h},100%,70%,0.5)`;
+            ctx.fillStyle = `hsla(${this.h},100%,90%,0.95)`;
             ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
             ctx.shadowBlur = 0;
         }
     }
 
     class P {
-        constructor(x,y,h) { this.x=x; this.y=y; this.h=h; this.vx=(Math.random()-0.5)*12; this.vy=(Math.random()-0.5)*12; this.l=1; }
-        update() { this.x+=this.vx; this.y+=this.vy; this.l-=0.025; }
-        draw() { ctx.fillStyle=`hsla(${this.h},100%,70%,${this.l})`; ctx.beginPath(); ctx.arc(this.x,this.y,2.5,0,Math.PI*2); ctx.fill(); }
+        constructor(x,y,h) { this.x=x; this.y=y; this.h=h; this.vx=(Math.random()-0.5)*18; this.vy=(Math.random()-0.5)*18; this.l=1; }
+        update() { if(!isGameRunning) return; this.x+=this.vx; this.y+=this.vy; this.l-=0.03; }
+        draw() { ctx.fillStyle=`hsla(${this.h},100%,70%,${this.l})`; ctx.beginPath(); ctx.arc(this.x,this.y,3.5,0,Math.PI*2); ctx.fill(); }
     }
 
-    for(let i=0; i<18; i++) stars.push(new Star());
+    for(let i=0; i<22; i++) stars.push(new Star());
 
     canvas.addEventListener('mousedown', (e) => {
+        if(!isGameRunning) return;
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
         let hit = false;
-        stars.forEach(s => {
-            if(Math.sqrt((mx-s.x)**2 + (my-s.y)**2) < s.r + 40) {
-                hit = true; score += 100 * (combo + 1); combo++;
-                for(let i=0; i<25; i++) particles.push(new P(s.x, s.y, s.h));
-                s.init();
-            }
-        });
+        stars.forEach(s => { if(Math.sqrt((mx-s.x)**2 + (my-s.y)**2) < s.r + 55) { 
+            hit = true; score += 100 * (combo + 1); combo++; 
+            for(let i=0; i<35; i++) particles.push(new P(s.x, s.y, s.h)); s.init(); 
+        } });
         if(!hit) combo = 0;
         document.getElementById('score').innerText = score.toLocaleString();
         document.getElementById('combo').innerText = `COMBO ${combo}`;
@@ -249,260 +214,8 @@
     function resetGame() { score=0; combo=0; document.getElementById('score').innerText="0"; document.getElementById('combo').innerText="COMBO 0"; }
 
     function animate() {
-        ctx.fillStyle = 'rgba(3, 3, 5, 0.4)'; ctx.fillRect(0,0,w,h);
-        stars.forEach(s => { s.update(); s.draw(); });
-        particles = particles.filter(p => p.l > 0);
-        particles.forEach(p => { p.update(); p.draw(); });
-        requestAnimationFrame(animate);
-    }
-
-    renderUI(); animate();
-</script>
-</body>
-</html></title>
-    <style>
-        :root { --accent: #a29bfe; --bg: #030305; --panel: rgba(20, 20, 25, 0.95); --glass: rgba(255, 255, 255, 0.05); }
-        body { margin: 0; overflow: hidden; background: var(--bg); color: white; font-family: 'Inter', -apple-system, sans-serif; width: 100vw; height: 100vh; }
-        
-        .container { display: flex; width: 100%; height: 100%; }
-        .side { flex: 1; height: 100%; position: relative; overflow: hidden; }
-        .video-side { background: #000; border-right: 1px solid rgba(255,255,255,0.05); }
-        .game-side { background: radial-gradient(circle at center, #0a0a15 0%, #030305 100%); }
-
-        /* メインURLバー */
-        .main-controls {
-            position: absolute; top: 20px; left: 20px; right: 20px; z-index: 10;
-            display: flex; gap: 10px; padding: 10px; background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(20px); border-radius: 12px; border: 1px solid var(--glass);
-        }
-
-        .video-wrapper { width: 100%; height: 100%; }
-        iframe { width: 100%; height: 100%; border: none; }
-
-        /* 設定ボタン */
-        .settings-trigger {
-            position: absolute; top: 25px; right: 25px; z-index: 100;
-            width: 45px; height: 45px; border-radius: 50%; background: var(--panel);
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            backdrop-filter: blur(10px); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); border: 1px solid var(--glass);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        .settings-trigger:hover { transform: rotate(90deg); background: var(--accent); }
-
-        /* サイドパネル */
-        .side-panel {
-            position: fixed; top: 0; right: -420px; width: 380px; height: 100%;
-            background: var(--panel); backdrop-filter: blur(50px); z-index: 95;
-            transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            box-shadow: -20px 0 50px rgba(0,0,0,0.8); padding: 90px 30px 30px;
-            display: flex; flex-direction: column; gap: 25px; border-left: 1px solid var(--glass);
-            box-sizing: border-box;
-        }
-        .side-panel.open { right: 0; }
-
-        /* UIパーツ */
-        .input-group { display: flex; flex-direction: column; gap: 12px; background: rgba(255,255,255,0.03); padding: 18px; border-radius: 18px; }
-        input { background: rgba(0,0,0,0.3); border: 1px solid var(--glass); color: white; padding: 12px; border-radius: 10px; outline: none; font-size: 0.85rem; }
-        .btn-row { display: flex; gap: 8px; }
-        .btn { flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-size: 0.75rem; transition: 0.2s; background: rgba(255,255,255,0.1); color: white; }
-        .btn:hover { background: var(--accent); color: #000; font-weight: bold; }
-
-        /* プレイリスト表示 */
-        .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .playlist-card { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 15px; border: 1px solid var(--glass); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .card-header h4 { margin: 0; font-size: 0.8rem; color: var(--accent); letter-spacing: 2px; }
-        .btn-del-list { font-size: 0.6rem; color: #ff7675; cursor: pointer; background: none; border: 1px solid rgba(255,118,117,0.3); border-radius: 4px; padding: 2px 5px; }
-        
-        .vid-item { 
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.75rem; padding: 8px; border-radius: 8px; transition: 0.2s; 
-        }
-        .vid-item:hover { background: rgba(255,255,255,0.05); }
-        .vid-name { flex: 1; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.6; }
-        .vid-name:hover { opacity: 1; color: var(--accent); }
-        .btn-del-vid { color: #555; cursor: pointer; margin-left: 10px; font-weight: bold; padding: 0 5px; }
-        .btn-del-vid:hover { color: #ff7675; }
-
-        /* ゲーム */
-        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .game-ui { position: absolute; top: 100px; right: 40px; text-align: right; pointer-events: none; z-index: 5; }
-        .score { font-size: 5rem; font-weight: 100; color: var(--accent); line-height: 1; opacity: 0.8; }
-        .combo { font-size: 1.2rem; color: #fff; opacity: 0.3; letter-spacing: 8px; margin-top: 5px; }
-        .reset-score { position: absolute; bottom: 30px; left: 30px; opacity: 0.3; cursor: pointer; font-size: 0.7rem; border: none; background: none; color: white; z-index: 5; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="side video-side">
-        <div class="main-controls">
-            <input type="text" id="main-url" placeholder="YouTube URLをペースト...">
-            <button class="btn" onclick="quickPaste('main-url')">PASTE</button>
-            <button class="btn" style="background:var(--accent); color:#000;" onclick="loadFrom('main-url')">PLAY</button>
-        </div>
-        <div class="video-wrapper">
-            <iframe id="player" src="https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1&mute=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-    </div>
-
-    <div class="side game-side" id="game-container">
-        <div class="game-ui">
-            <div class="score" id="score">0</div>
-            <div class="combo" id="combo">COMBO 0</div>
-        </div>
-        <canvas id="canvas"></canvas>
-        <button class="reset-score" onclick="resetGame()">RESET SCORE</button>
-    </div>
-</div>
-
-<div class="settings-trigger" onclick="togglePanel()">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-</div>
-
-<div class="side-panel" id="sidePanel">
-    <h3 style="margin:0; font-weight:200; letter-spacing:3px;">SETTINGS</h3>
-    <div class="input-group">
-        <input type="text" id="panel-url" placeholder="URLを追加または再生...">
-        <div class="btn-row">
-            <button class="btn" onclick="quickPaste('panel-url')">PASTE</button>
-            <button class="btn" onclick="loadFrom('panel-url')">PLAY</button>
-        </div>
-        <div class="btn-row">
-            <select id="target-list" style="flex:2; background:#000; color:white; border:1px solid var(--glass); border-radius:10px; padding:5px;"></select>
-            <button class="btn" style="background:#55efc4; color:#000; font-weight:bold;" onclick="saveToPlaylist()">ADD</button>
-        </div>
-    </div>
-    <div class="playlist-scroll" id="playlistArea"></div>
-</div>
-
-<script>
-    // --- Data Persistence (LocalStorage) ---
-    const STORAGE_KEY = 'dat_vfinal_db';
-    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || Array.from({length: 10}, (_, i) => ({ name: `Playlist ${i+1}`, vids: [] }));
-    
-    function saveDB() { 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); 
-        renderUI(); 
-    }
-
-    function togglePanel() { document.getElementById('sidePanel').classList.toggle('open'); }
-
-    function renderUI() {
-        const area = document.getElementById('playlistArea');
-        const sel = document.getElementById('target-list');
-        area.innerHTML = ''; sel.innerHTML = '';
-        db.forEach((list, i) => {
-            const opt = document.createElement('option'); opt.value = i; opt.innerText = list.name;
-            sel.appendChild(opt);
-
-            const card = document.createElement('div');
-            card.className = 'playlist-card';
-            
-            const header = document.createElement('div');
-            header.className = 'card-header';
-            header.innerHTML = `<h4>${list.name.toUpperCase()}</h4>`;
-            const delListBtn = document.createElement('button');
-            delListBtn.className = 'btn-del-list';
-            delListBtn.innerText = 'Reset List';
-            delListBtn.onclick = () => { if(confirm('リストを空にしますか？')) { db[i].vids = []; saveDB(); } };
-            header.appendChild(delListBtn);
-            card.appendChild(header);
-
-            list.vids.forEach((id, vIdx) => {
-                const item = document.createElement('div');
-                item.className = 'vid-item';
-                
-                const name = document.createElement('span');
-                name.className = 'vid-name';
-                name.innerText = `ID: ${id}`;
-                name.onclick = () => { playById(id); togglePanel(); };
-                
-                const delVidBtn = document.createElement('span');
-                delVidBtn.className = 'btn-del-vid';
-                delVidBtn.innerText = '×';
-                delVidBtn.onclick = (e) => { e.stopPropagation(); db[i].vids.splice(vIdx, 1); saveDB(); };
-
-                item.appendChild(name);
-                item.appendChild(delVidBtn);
-                card.appendChild(item);
-            });
-            area.appendChild(card);
-        });
-    }
-
-    // --- Actions ---
-    function extractID(url) {
-        const reg = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-        const m = url.match(reg); return (m && m[7].length === 11) ? m[7] : null;
-    }
-    function loadFrom(inputId) { const id = extractID(document.getElementById(inputId).value); if(id) playById(id); }
-    function playById(id) { document.getElementById('player').src = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1`; }
-    async function quickPaste(inputId) { try { const t = await navigator.clipboard.readText(); document.getElementById(inputId).value = t; } catch(e){} }
-    function saveToPlaylist() {
-        const id = extractID(document.getElementById('panel-url').value);
-        const idx = document.getElementById('target-list').value;
-        if(id && db[idx].vids.length < 50) { 
-            db[idx].vids.push(id); 
-            saveDB(); 
-            document.getElementById('panel-url').value = ''; 
-        }
-    }
-
-    // --- Game ---
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const container = document.getElementById('game-container');
-    let w, h, score = 0, combo = 0, stars = [], particles = [];
-
-    function initCanvas() { w = canvas.width = container.clientWidth; h = canvas.height = container.clientHeight; }
-    window.addEventListener('resize', initCanvas);
-    initCanvas();
-
-    class Star {
-        constructor() { this.init(); }
-        init() {
-            this.x = Math.random() * w; this.y = h + Math.random() * 200;
-            this.r = Math.random() * 10 + 8; this.v = -(Math.random() * 2 + 1);
-            this.h = 240 + Math.random() * 40;
-        }
-        update() { this.y += this.v; if(this.y < -50) this.init(); }
-        draw() {
-            ctx.shadowBlur = 25; ctx.shadowColor = `hsla(${this.h},100%,70%,0.5)`;
-            ctx.fillStyle = `hsla(${this.h},100%,90%,0.9)`;
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-    }
-
-    class P {
-        constructor(x,y,h) { this.x=x; this.y=y; this.h=h; this.vx=(Math.random()-0.5)*12; this.vy=(Math.random()-0.5)*12; this.l=1; }
-        update() { this.x+=this.vx; this.y+=this.vy; this.l-=0.025; }
-        draw() { ctx.fillStyle=`hsla(${this.h},100%,70%,${this.l})`; ctx.beginPath(); ctx.arc(this.x,this.y,2.5,0,Math.PI*2); ctx.fill(); }
-    }
-
-    for(let i=0; i<18; i++) stars.push(new Star());
-
-    canvas.addEventListener('mousedown', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
-        let hit = false;
-        stars.forEach(s => {
-            if(Math.sqrt((mx-s.x)**2 + (my-s.y)**2) < s.r + 40) {
-                hit = true; score += 100 * (combo + 1); combo++;
-                for(let i=0; i<25; i++) particles.push(new P(s.x, s.y, s.h));
-                s.init();
-            }
-        });
-        if(!hit) combo = 0;
-        document.getElementById('score').innerText = score.toLocaleString();
-        document.getElementById('combo').innerText = `COMBO ${combo}`;
-    });
-
-    function resetGame() { score=0; combo=0; document.getElementById('score').innerText="0"; document.getElementById('combo').innerText="COMBO 0"; }
-
-    function animate() {
-        ctx.fillStyle = 'rgba(3, 3, 5, 0.4)'; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = 'rgba(3, 3, 5, 0.45)';
+        ctx.fillRect(0,0,w,h);
         stars.forEach(s => { s.update(); s.draw(); });
         particles = particles.filter(p => p.l > 0);
         particles.forEach(p => { p.update(); p.draw(); });
