@@ -7,31 +7,23 @@
         :root { --accent: #a29bfe; --bg: #030305; --panel: rgba(20, 20, 25, 0.98); --glass: rgba(255, 255, 255, 0.08); }
         body { margin: 0; overflow: hidden; background: var(--bg); color: white; font-family: 'Inter', -apple-system, sans-serif; width: 100vw; height: 100vh; }
         
-        /* メインコンテナ */
         .container { 
             display: flex; width: 100%; height: 100%; 
             padding: 25px; box-sizing: border-box; gap: 25px;
             background: radial-gradient(circle at center, #11111d 0%, #030305 100%);
         }
 
-        /* 左右の角丸アイランド */
         .side { 
             flex: 1; height: 100%; position: relative; 
-            background: #000;
-            border-radius: 35px; 
-            border: 1px solid var(--glass);
-            overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            background: #000; border-radius: 35px; border: 1px solid var(--glass);
+            overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
 
         .video-side { background: #000; display: flex; flex-direction: column; }
         .video-wrapper { width: 100%; height: 100%; background: #000; }
         iframe { width: 100%; height: 100%; border: none; }
-
-        /* ゲーム側 */
         .game-side { background: #000; cursor: crosshair; }
 
-        /* コントロールバー（PASTE / PLAY 両方搭載） */
         .main-controls {
             position: absolute; top: 20px; left: 20px; right: 20px; z-index: 10;
             display: flex; gap: 8px; padding: 10px; background: rgba(0,0,0,0.6);
@@ -39,14 +31,11 @@
         }
 
         input { background: rgba(0,0,0,0.5); border: 1px solid var(--glass); color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 0.8rem; flex: 1; min-width: 0; }
-        
-        /* ボタンサイズ調整 */
         .btn-action { padding: 12px 18px; border-radius: 12px; border: none; cursor: pointer; font-size: 0.7rem; font-weight: bold; transition: 0.3s; color: white; white-space: nowrap; }
         .btn-paste { background: rgba(255,255,255,0.1); }
         .btn-play { background: var(--accent); color: #000; }
         .btn-action:hover { transform: translateY(-2px); filter: brightness(1.2); }
 
-        /* ゲーム操作パネル */
         .game-nav { position: absolute; top: 110px; left: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 5; }
         .ctrl-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--glass); color: white; padding: 10px 15px; border-radius: 12px; cursor: pointer; backdrop-filter: blur(10px); transition: 0.2s; font-size: 0.65rem; letter-spacing: 1px; }
         .ctrl-btn:hover { background: var(--accent); color: #000; }
@@ -56,11 +45,26 @@
         .score { font-size: 5.5rem; font-weight: 100; color: var(--accent); line-height: 1; opacity: 0.9; }
         .combo { font-size: 1.2rem; color: #fff; opacity: 0.3; letter-spacing: 10px; margin-top: 5px; }
 
-        /* 設定パネル */
-        .settings-trigger { position: fixed; top: 45px; right: 45px; z-index: 100; width: 55px; height: 55px; border-radius: 50%; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(20px); border: 1px solid var(--glass); box-shadow: 0 10px 40px rgba(0,0,0,0.6); transition: 0.5s; }
-        .settings-trigger:hover { transform: rotate(180deg) scale(1.1); background: var(--accent); }
-        
-        .side-panel { position: fixed; top: 0; right: -420px; width: 380px; height: 100%; background: var(--panel); backdrop-filter: blur(50px); z-index: 110; transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 100px 30px 30px; border-left: 1px solid var(--glass); box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; }
+        /* --- 修正ポイント：設定ボタンの重なり順をパネルより上にする --- */
+        .settings-trigger { 
+            position: fixed; top: 45px; right: 45px; 
+            z-index: 150; /* パネル(110)より高い数値に設定 */
+            width: 55px; height: 55px; border-radius: 50%; background: var(--panel); 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; 
+            backdrop-filter: blur(20px); border: 1px solid var(--glass); 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
+        }
+        .settings-trigger:hover { transform: rotate(90deg) scale(1.1); background: var(--accent); }
+        .settings-trigger.active { transform: rotate(180deg); background: #ff7675; color: #000; }
+
+        .side-panel { 
+            position: fixed; top: 0; right: -420px; width: 380px; height: 100%; 
+            background: var(--panel); backdrop-filter: blur(50px); 
+            z-index: 110; transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); 
+            padding: 120px 30px 30px; /* ボタンと被らないよう上部余白を調整 */
+            border-left: 1px solid var(--glass); box-sizing: border-box; 
+            display: flex; flex-direction: column; gap: 20px; 
+        }
         .side-panel.open { right: 0; }
         
         .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
@@ -81,25 +85,19 @@
             <button class="btn-action btn-paste" onclick="quickPaste('main-url')">PASTE</button>
             <button class="btn-action btn-play" onclick="loadFrom('main-url')">PLAY</button>
         </div>
-        <div class="video-wrapper">
-            <iframe id="player" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
+        <div class="video-wrapper"><iframe id="player" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>
     </div>
-
     <div class="side game-side" id="game-container">
         <div class="game-nav">
             <button id="toggleGame" class="ctrl-btn" onclick="toggleGameState()">START</button>
             <button class="ctrl-btn" onclick="resetGame()">RESET SCORE</button>
         </div>
-        <div class="game-ui">
-            <div class="score" id="score">0</div>
-            <div class="combo" id="combo">COMBO 0</div>
-        </div>
+        <div class="game-ui"><div class="score" id="score">0</div><div class="combo" id="combo">COMBO 0</div></div>
         <canvas id="canvas"></canvas>
     </div>
 </div>
 
-<div class="settings-trigger" onclick="togglePanel()">
+<div class="settings-trigger" id="gearBtn" onclick="togglePanel()">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
 </div>
 
@@ -120,12 +118,18 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'dat_yt_hub_final_v3';
+    const STORAGE_KEY = 'dat_yt_hub_final_v4';
     let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || Array.from({length: 10}, (_, i) => ({ name: `List ${i+1}`, vids: [] }));
     let isGameRunning = false;
 
     function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); renderUI(); }
-    function togglePanel() { document.getElementById('sidePanel').classList.toggle('open'); }
+    
+    function togglePanel() { 
+        const panel = document.getElementById('sidePanel');
+        const gear = document.getElementById('gearBtn');
+        panel.classList.toggle('open');
+        gear.classList.toggle('active');
+    }
 
     function renderUI() {
         const area = document.getElementById('playlistArea');
@@ -147,7 +151,6 @@
 
     function resetList(idx) { if(confirm('Listをリセットしますか？')) { db[idx].vids = []; saveDB(); } }
     function delVid(lIdx, vIdx) { db[lIdx].vids.splice(vIdx, 1); saveDB(); }
-
     function extractID(url) {
         const reg = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
         const m = url.match(reg); return (m && m[7].length === 11) ? m[7] : null;
@@ -161,7 +164,6 @@
         if(id) { db[idx].vids.push(id); saveDB(); document.getElementById('panel-url').value = ''; }
     }
 
-    // --- GAME ENGINE ---
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const container = document.getElementById('game-container');
