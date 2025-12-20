@@ -2,106 +2,96 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Youtube見ながらゲーム!</title>
+    <title>youtube見ながらゲーム!</title>
     <style>
         :root { --accent: #a29bfe; --bg: #030305; --panel: rgba(255, 255, 255, 0.05); }
         body { margin: 0; overflow: hidden; background: var(--bg); color: white; font-family: 'Inter', 'Segoe UI', sans-serif; }
         
         .container { display: flex; width: 100vw; height: 100vh; }
 
-        /* 左：YouTubeエリア */
+        /* 左側：動画＆プレイリストエリア */
         .video-side {
             flex: 1.3;
-            position: relative;
             display: flex;
             flex-direction: column;
-            padding: 30px;
+            padding: 20px;
             background: radial-gradient(circle at 0% 0%, #0a0a12 0%, #030305 100%);
+            gap: 15px;
         }
-        
+
+        /* 統合コントロールバー */
         .control-bar {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
             background: rgba(255, 255, 255, 0.07);
-            padding: 10px 20px;
-            border-radius: 100px;
+            padding: 10px 15px;
+            border-radius: 15px;
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.1);
         }
-        input#yt-url {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: white;
-            outline: none;
-            font-size: 0.9rem;
-        }
+        input#yt-url { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 0.85rem; }
         .btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #eee;
-            padding: 6px 18px;
-            border-radius: 100px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: 0.2s;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);
+            color: #eee; padding: 5px 15px; border-radius: 100px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;
         }
-        .btn:hover { background: var(--accent); color: white; border-color: white; transform: translateY(-1px); }
-        .btn-play { background: var(--accent); color: white; font-weight: bold; }
+        .btn:hover { background: var(--accent); color: white; transform: translateY(-1px); }
+        .btn-add { background: #55efc4; color: #000; font-weight: bold; }
+
+        /* プレイリスト表示エリア */
+        .playlist-container {
+            display: flex;
+            gap: 10px;
+            height: 120px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .playlist-slot {
+            min-width: 150px;
+            background: var(--panel);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 0.75rem;
+        }
+        .playlist-slot h4 { margin: 0 0 5px 0; color: var(--accent); font-size: 0.7rem; }
+        .video-list { height: 70px; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
+        .video-item {
+            padding: 3px 5px; cursor: pointer; border-radius: 3px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.7;
+        }
+        .video-item:hover { background: rgba(255,255,255,0.1); opacity: 1; }
 
         .video-wrapper {
-            flex: 1;
-            width: 100%;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            border: 1px solid rgba(255,255,255,0.03);
+            flex: 1; border-radius: 15px; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.03);
             background: #000;
         }
         iframe { width: 100%; height: 100%; border: none; }
 
-        /* 右：ゲームエリア */
-        .game-side {
-            flex: 0.7;
-            position: relative;
-        }
+        /* 右側：洗練されたゲームエリア */
+        .game-side { flex: 0.7; position: relative; }
         canvas { width: 100%; height: 100%; cursor: crosshair; }
-
-        .game-ui {
-            position: absolute;
-            top: 40px;
-            right: 40px;
-            text-align: right;
-            pointer-events: none;
-        }
-        .score { font-size: 3.5rem; font-weight: 200; letter-spacing: -2px; color: var(--accent); opacity: 0.9; line-height: 1; }
-        .combo { font-size: 1rem; letter-spacing: 4px; color: #fff; opacity: 0.5; margin-top: 10px; }
-        
-        /* リセットボタン */
-        .reset-area {
-            position: absolute;
-            bottom: 40px;
-            right: 40px;
-        }
-        .btn-reset {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #555;
-            font-size: 0.7rem;
-            letter-spacing: 2px;
-        }
-        .btn-reset:hover { color: #ff7675; border-color: #ff7675; background: rgba(255,118,117,0.1); }
+        .game-ui { position: absolute; top: 40px; right: 40px; text-align: right; pointer-events: none; }
+        .score { font-size: 3.5rem; font-weight: 200; color: var(--accent); line-height: 1; }
+        .combo { font-size: 0.9rem; letter-spacing: 4px; color: #fff; opacity: 0.4; margin-top: 5px; }
+        .btn-reset { position: absolute; bottom: 30px; right: 30px; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #555; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.6rem; }
+        .btn-reset:hover { border-color: #ff7675; color: #ff7675; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="video-side">
+        <div class="playlist-container" id="playlist-container">
+            </div>
+
         <div class="control-bar">
-            <input type="text" id="yt-url" placeholder="YouTube URLをペースト...">
+            <input type="text" id="yt-url" placeholder="Paste YouTube URL...">
             <button class="btn" onclick="pasteFromClipboard()">PASTE</button>
-            <button class="btn btn-play" onclick="loadVideo()">PLAY</button>
+            <button class="btn" onclick="loadVideo()">PLAY</button>
+            <button class="btn btn-add" onclick="addToPlaylist()">+ ADD TO LIST</button>
+            <select id="list-selector" style="background:#222; color:white; border:none; border-radius:5px; padding:0 5px;">
+                </select>
         </div>
         
         <div class="video-wrapper">
@@ -115,85 +105,103 @@
             <div class="combo" id="combo">COMBO 0</div>
         </div>
         <canvas id="canvas"></canvas>
-        <div class="reset-area">
-            <button class="btn btn-reset" onclick="resetGame()">RESET SCORE</button>
-        </div>
+        <button class="btn-reset" onclick="resetGame()">RESET SCORE</button>
     </div>
 </div>
 
 <script>
-    // --- YouTube System ---
-    function loadVideo() {
-        const url = document.getElementById('yt-url').value.trim();
-        const videoId = extractVideoId(url);
-        if (videoId) {
-            // パラメータを最適化
-            document.getElementById('player').src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0`;
-        } else if(url !== "") {
-            alert("正しいYouTubeのURLを入力してね！");
-        }
+    // --- データ管理 ---
+    let playlists = JSON.parse(localStorage.getItem('dat_playlists')) || Array.from({length: 10}, (_, i) => ({ name: `List ${i+1}`, videos: [] }));
+    let activeListIndex = 0;
+
+    function save() { localStorage.setItem('dat_playlists', JSON.stringify(playlists)); renderPlaylists(); }
+
+    function renderPlaylists() {
+        const container = document.getElementById('playlist-container');
+        const selector = document.getElementById('list-selector');
+        container.innerHTML = '';
+        selector.innerHTML = '';
+
+        playlists.forEach((list, idx) => {
+            // セレクター更新
+            const opt = document.createElement('option');
+            opt.value = idx; opt.innerText = list.name;
+            selector.appendChild(opt);
+
+            // リスト表示更新
+            const div = document.createElement('div');
+            div.className = 'playlist-slot';
+            div.innerHTML = `<h4>${list.name} (${list.videos.length}/50)</h4>`;
+            const ul = document.createElement('ul');
+            ul.className = 'video-list';
+            list.videos.forEach((vid, vIdx) => {
+                const li = document.createElement('li');
+                li.className = 'video-item';
+                li.innerText = `[${vIdx+1}] ${vid}`;
+                li.onclick = () => playById(vid);
+                ul.appendChild(li);
+            });
+            div.appendChild(ul);
+            container.appendChild(div);
+        });
     }
 
+    // --- YouTube操作 ---
     function extractVideoId(url) {
         const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
         const match = url.match(regExp);
         return (match && match[7].length === 11) ? match[7] : null;
     }
 
-    async function pasteFromClipboard() {
-        try {
-            const text = await navigator.clipboard.readText();
-            document.getElementById('yt-url').value = text;
-        } catch (err) {
-            alert("クリップボードへのアクセスが拒否されました。ブラウザの設定を確認してね。");
+    function loadVideo() {
+        const id = extractVideoId(document.getElementById('yt-url').value);
+        if (id) playById(id);
+    }
+
+    function playById(id) {
+        document.getElementById('player').src = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1`;
+    }
+
+    function addToPlaylist() {
+        const id = extractVideoId(document.getElementById('yt-url').value);
+        const idx = document.getElementById('list-selector').value;
+        if (id && playlists[idx].videos.length < 50) {
+            playlists[idx].videos.push(id);
+            save();
+        } else if (!id) {
+            alert("URLが無効だよ");
+        } else {
+            alert("このリストは満杯だよ(50個まで)");
         }
     }
 
-    // --- Game System ---
+    async function pasteFromClipboard() {
+        const text = await navigator.clipboard.readText();
+        document.getElementById('yt-url').value = text;
+    }
+
+    // --- 銀河ゲーム (280Hz/最適化版) ---
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    let w, h, score = 0, combo = 0;
-    let nodes = [], particles = [];
+    let w, h, score = 0, combo = 0, nodes = [], particles = [];
 
-    function resize() {
-        w = canvas.width = canvas.offsetWidth;
-        h = canvas.height = canvas.offsetHeight;
-    }
+    function resize() { w = canvas.width = canvas.offsetWidth; h = canvas.height = canvas.offsetHeight; }
     window.addEventListener('resize', resize);
     resize();
-
-    function resetGame() {
-        score = 0;
-        combo = 0;
-        updateUI();
-    }
 
     class Node {
         constructor() { this.init(); }
         init() {
-            this.x = Math.random() * w;
-            this.y = h + 100;
-            // 星の大きさを大きくしたよ (5〜12px)
-            this.r = Math.random() * 7 + 5; 
-            this.glow = this.r * 3;
-            this.vy = -(Math.random() * 1.2 + 0.4);
-            this.hue = 250 + Math.random() * 50;
+            this.x = Math.random() * w; this.y = h + 100;
+            this.r = Math.random() * 8 + 6; // 大きめサイズ
+            this.vy = -(Math.random() * 1.5 + 0.5);
+            this.hue = 240 + Math.random() * 60;
         }
-        update() {
-            this.y += this.vy;
-            if (this.y < -100) {
-                this.init();
-                if(combo > 0) combo--; // 逃すとコンボ減少（厳しすぎないルール）
-                updateUI();
-            }
-        }
+        update() { this.y += this.vy; if (this.y < -100) this.init(); }
         draw() {
-            ctx.shadowBlur = this.glow;
-            ctx.shadowColor = `hsla(${this.hue}, 100%, 70%, 0.6)`;
+            ctx.shadowBlur = 15; ctx.shadowColor = `hsla(${this.hue}, 100%, 70%, 0.5)`;
             ctx.fillStyle = `hsla(${this.hue}, 100%, 90%, 0.9)`;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
             ctx.shadowBlur = 0;
         }
     }
@@ -201,50 +209,35 @@
     class Particle {
         constructor(x, y, h) {
             this.x = x; this.y = y; this.hue = h;
-            this.vx = (Math.random() - 0.5) * 10;
-            this.vy = (Math.random() - 0.5) * 10;
-            this.life = 1.0;
+            this.vx = (Math.random()-0.5)*12; this.vy = (Math.random()-0.5)*12; this.life = 1.0;
         }
-        update() {
-            this.x += this.vx; this.y += this.vy;
-            this.life -= 0.02;
-        }
+        update() { this.x += this.vx; this.y += this.vy; this.life -= 0.02; }
         draw() {
             ctx.fillStyle = `hsla(${this.hue}, 100%, 75%, ${this.life})`;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, 2, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI*2); ctx.fill();
         }
     }
 
-    for(let i=0; i<12; i++) nodes.push(new Node());
+    for(let i=0; i<15; i++) nodes.push(new Node());
 
     canvas.addEventListener('mousedown', (e) => {
         const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+        const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
         let hit = false;
-
         nodes.forEach(n => {
-            const dx = mx - n.x;
-            const dy = my - n.y;
-            // クリック判定を少し広めにして遊びやすくしたよ
-            if (Math.sqrt(dx*dx + dy*dy) < (n.r + 30)) {
-                hit = true;
-                score += (100 * (combo + 1));
-                combo++;
-                for(let i=0; i<25; i++) particles.push(new Particle(n.x, n.y, n.hue));
+            const d = Math.sqrt((mx-n.x)**2 + (my-n.y)**2);
+            if (d < n.r + 35) { // 広めの判定
+                hit = true; score += (100 * (combo + 1)); combo++;
+                for(let i=0; i<20; i++) particles.push(new Particle(n.x, n.y, n.hue));
                 n.init();
             }
         });
         if(!hit) combo = 0;
-        updateUI();
-    });
-
-    function updateUI() {
         document.getElementById('score').innerText = score.toLocaleString();
         document.getElementById('combo').innerText = `COMBO ${combo}`;
-    }
+    });
+
+    function resetGame() { score = 0; combo = 0; document.getElementById('score').innerText = "0"; document.getElementById('combo').innerText = "COMBO 0"; }
 
     function animate() {
         ctx.clearRect(0, 0, w, h);
@@ -253,6 +246,8 @@
         particles.forEach(p => { p.update(); p.draw(); });
         requestAnimationFrame(animate);
     }
+
+    renderPlaylists();
     animate();
 </script>
 </body>
