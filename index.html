@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>youtube見ながらゲーム！</title>
+    <title>youtube見ながらゲーム！ - Powered by Sophia</title>
     <style>
         :root { --accent: #a29bfe; --bg: #030305; --panel: rgba(20, 20, 25, 0.98); --glass: rgba(255, 255, 255, 0.08); }
         body { margin: 0; overflow: hidden; background: var(--bg); color: white; font-family: 'Inter', -apple-system, sans-serif; width: 100vw; height: 100vh; }
@@ -45,10 +45,9 @@
         .score { font-size: 5.5rem; font-weight: 100; color: var(--accent); line-height: 1; opacity: 0.9; }
         .combo { font-size: 1.2rem; color: #fff; opacity: 0.3; letter-spacing: 10px; margin-top: 5px; }
 
-        /* --- 修正ポイント：設定ボタンの重なり順をパネルより上にする --- */
         .settings-trigger { 
             position: fixed; top: 45px; right: 45px; 
-            z-index: 150; /* パネル(110)より高い数値に設定 */
+            z-index: 150; 
             width: 55px; height: 55px; border-radius: 50%; background: var(--panel); 
             display: flex; align-items: center; justify-content: center; cursor: pointer; 
             backdrop-filter: blur(20px); border: 1px solid var(--glass); 
@@ -61,7 +60,7 @@
             position: fixed; top: 0; right: -420px; width: 380px; height: 100%; 
             background: var(--panel); backdrop-filter: blur(50px); 
             z-index: 110; transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); 
-            padding: 120px 30px 30px; /* ボタンと被らないよう上部余白を調整 */
+            padding: 120px 30px 30px; 
             border-left: 1px solid var(--glass); box-sizing: border-box; 
             display: flex; flex-direction: column; gap: 20px; 
         }
@@ -85,7 +84,9 @@
             <button class="btn-action btn-paste" onclick="quickPaste('main-url')">PASTE</button>
             <button class="btn-action btn-play" onclick="loadFrom('main-url')">PLAY</button>
         </div>
-        <div class="video-wrapper"><iframe id="player" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>
+        <div class="video-wrapper">
+            <iframe id="player" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
     </div>
     <div class="side game-side" id="game-container">
         <div class="game-nav">
@@ -118,7 +119,7 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'dat_yt_hub_final_v4';
+    const STORAGE_KEY = 'dat_yt_hub_final_v5';
     let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || Array.from({length: 10}, (_, i) => ({ name: `List ${i+1}`, vids: [] }));
     let isGameRunning = false;
 
@@ -151,26 +152,63 @@
 
     function resetList(idx) { if(confirm('Listをリセットしますか？')) { db[idx].vids = []; saveDB(); } }
     function delVid(lIdx, vIdx) { db[lIdx].vids.splice(vIdx, 1); saveDB(); }
+
+    // URL解析の修正：様々な形式に対応
     function extractID(url) {
-        const reg = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-        const m = url.match(reg); return (m && m[7].length === 11) ? m[7] : null;
-    }
-    function loadFrom(inputId) { const id = extractID(document.getElementById(inputId).value); if(id) playById(id); }
-    function playById(id) { document.getElementById('player').src = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1`; }
-    async function quickPaste(inputId) { try { const t = await navigator.clipboard.readText(); document.getElementById(inputId).value = t; } catch(e){} }
-    function saveToPlaylist() {
-        const id = extractID(document.getElementById('panel-url').value);
-        const idx = document.getElementById('target-list').value;
-        if(id) { db[idx].vids.push(id); saveDB(); document.getElementById('panel-url').value = ''; }
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : (url.length === 11 ? url : null);
     }
 
+    function loadFrom(inputId) { 
+        const input = document.getElementById(inputId);
+        const id = extractID(input.value.trim()); 
+        if(id) {
+            playById(id);
+        } else {
+            alert('有効なYouTube URLを入力してね！');
+        }
+    }
+
+    // 再生用iframeのURL生成の修正
+    function playById(id) { 
+        // originパラメータを追加することでAPI連携の準備を整える（必要に応じて）
+        const embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&enablejsapi=1&rel=0`;
+        document.getElementById('player').src = embedUrl; 
+    }
+
+    async function quickPaste(inputId) { 
+        try { 
+            const text = await navigator.clipboard.readText(); 
+            document.getElementById(inputId).value = text; 
+        } catch(e) {
+            console.error("Paste failed:", e);
+        } 
+    }
+
+    function saveToPlaylist() {
+        const id = extractID(document.getElementById('panel-url').value.trim());
+        const idx = document.getElementById('target-list').value;
+        if(id) { 
+            db[idx].vids.push(id); 
+            saveDB(); 
+            document.getElementById('panel-url').value = ''; 
+        }
+    }
+
+    // ゲームロジック
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const container = document.getElementById('game-container');
     let w, h, score = 0, combo = 0, stars = [], particles = [];
 
-    function initCanvas() { w = canvas.width = container.clientWidth; h = canvas.height = container.clientHeight; }
-    window.addEventListener('resize', initCanvas); initCanvas();
+    function initCanvas() { 
+        w = canvas.width = container.clientWidth; 
+        h = canvas.height = container.clientHeight; 
+    }
+    window.addEventListener('resize', initCanvas); 
+    initCanvas();
 
     function toggleGameState() {
         isGameRunning = !isGameRunning;
