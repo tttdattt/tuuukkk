@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>youtube見ながらゲーム！ - Powered by Sophia</title>
+    <title>youtube見ながらゲーム！</title>
     <style>
         :root { --accent: #a29bfe; --bg: #030305; --panel: rgba(20, 20, 25, 0.98); --glass: rgba(255, 255, 255, 0.08); }
         body { margin: 0; overflow: hidden; background: var(--bg); color: white; font-family: 'Inter', -apple-system, sans-serif; width: 100vw; height: 100vh; }
@@ -19,68 +19,45 @@
             overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
 
-        .video-side { background: #000; display: flex; flex-direction: column; }
-        .video-wrapper { width: 100%; height: 100%; background: #000; }
-        iframe { width: 100%; height: 100%; border: none; }
-        .game-side { background: #000; cursor: crosshair; }
-
-        .main-controls {
-            position: absolute; top: 20px; left: 20px; right: 20px; z-index: 10;
-            display: flex; gap: 8px; padding: 10px; background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(25px); border-radius: 20px; border: 1px solid var(--glass);
+        /* YouTube側のレイアウト修正：上部にスペースを確保 */
+        .video-side { display: flex; flex-direction: column; }
+        .control-header { 
+            height: 80px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            padding: 0 20px; 
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--glass);
         }
+        .video-wrapper { flex: 1; background: #000; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        input { background: rgba(0,0,0,0.5); border: 1px solid var(--glass); color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 0.8rem; flex: 1; min-width: 0; }
+        input { background: rgba(0,0,0,0.5); border: 1px solid var(--glass); color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 0.8rem; flex: 1; }
         .btn-action { padding: 12px 18px; border-radius: 12px; border: none; cursor: pointer; font-size: 0.7rem; font-weight: bold; transition: 0.3s; color: white; white-space: nowrap; }
         .btn-paste { background: rgba(255,255,255,0.1); }
         .btn-play { background: var(--accent); color: #000; }
-        .btn-action:hover { transform: translateY(-2px); filter: brightness(1.2); }
 
-        .game-nav { position: absolute; top: 110px; left: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 5; }
-        .ctrl-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--glass); color: white; padding: 10px 15px; border-radius: 12px; cursor: pointer; backdrop-filter: blur(10px); transition: 0.2s; font-size: 0.65rem; letter-spacing: 1px; }
-        .ctrl-btn:hover { background: var(--accent); color: #000; }
+        /* ゲーム側UI */
+        .game-nav { position: absolute; top: 20px; left: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 5; }
+        .ctrl-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--glass); color: white; padding: 10px 15px; border-radius: 12px; cursor: pointer; backdrop-filter: blur(10px); transition: 0.2s; font-size: 0.65rem; }
         .ctrl-btn.active { background: #55efc4; color: #000; }
-
-        .game-ui { position: absolute; top: 110px; right: 50px; text-align: right; pointer-events: none; z-index: 5; }
-        .score { font-size: 5.5rem; font-weight: 100; color: var(--accent); line-height: 1; opacity: 0.9; }
-        .combo { font-size: 1.2rem; color: #fff; opacity: 0.3; letter-spacing: 10px; margin-top: 5px; }
-
-        .settings-trigger { 
-            position: fixed; top: 45px; right: 45px; 
-            z-index: 150; 
-            width: 55px; height: 55px; border-radius: 50%; background: var(--panel); 
-            display: flex; align-items: center; justify-content: center; cursor: pointer; 
-            backdrop-filter: blur(20px); border: 1px solid var(--glass); 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
-        }
-        .settings-trigger:hover { transform: rotate(90deg) scale(1.1); background: var(--accent); }
-        .settings-trigger.active { transform: rotate(180deg); background: #ff7675; color: #000; }
-
-        .side-panel { 
-            position: fixed; top: 0; right: -420px; width: 380px; height: 100%; 
-            background: var(--panel); backdrop-filter: blur(50px); 
-            z-index: 110; transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); 
-            padding: 120px 30px 30px; 
-            border-left: 1px solid var(--glass); box-sizing: border-box; 
-            display: flex; flex-direction: column; gap: 20px; 
-        }
-        .side-panel.open { right: 0; }
+        .game-ui { position: absolute; top: 20px; right: 20px; text-align: right; pointer-events: none; z-index: 5; }
+        .score { font-size: 4rem; font-weight: 100; color: var(--accent); line-height: 1; }
         
-        .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .playlist-card { background: rgba(255,255,255,0.02); border-radius: 20px; padding: 18px; border: 1px solid var(--glass); }
-        .vid-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; padding: 10px; border-radius: 10px; transition: 0.2s; }
-        .vid-item:hover { background: rgba(255,255,255,0.05); }
-
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        /* 共通設定パネル */
+        .settings-trigger { position: fixed; top: 40px; right: 40px; z-index: 150; width: 50px; height: 50px; border-radius: 50%; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--glass); }
+        .side-panel { position: fixed; top: 0; right: -420px; width: 380px; height: 100%; background: var(--panel); z-index: 110; transition: 0.5s; padding: 100px 30px; border-left: 1px solid var(--glass); box-sizing: border-box; }
+        .side-panel.open { right: 0; }
+        .playlist-scroll { flex: 1; overflow-y: auto; margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="side video-side">
-        <div class="main-controls">
-            <input type="text" id="main-url" placeholder="Paste YouTube URL...">
+        <div class="control-header">
+            <input type="text" id="main-url" placeholder="YouTube URLをここに貼り付け...">
             <button class="btn-action btn-paste" onclick="quickPaste('main-url')">PASTE</button>
             <button class="btn-action btn-play" onclick="loadFrom('main-url')">PLAY</button>
         </div>
@@ -88,48 +65,54 @@
             <iframe id="player" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
     </div>
+
     <div class="side game-side" id="game-container">
         <div class="game-nav">
             <button id="toggleGame" class="ctrl-btn" onclick="toggleGameState()">START</button>
-            <button class="ctrl-btn" onclick="resetGame()">RESET SCORE</button>
+            <button class="ctrl-btn" onclick="resetGame()">RESET</button>
         </div>
-        <div class="game-ui"><div class="score" id="score">0</div><div class="combo" id="combo">COMBO 0</div></div>
+        <div class="game-ui">
+            <div class="score" id="score">0</div>
+            <div id="distance" style="opacity:0.5; font-size:0.8rem;">0m</div>
+        </div>
         <canvas id="canvas"></canvas>
     </div>
 </div>
 
-<div class="settings-trigger" id="gearBtn" onclick="togglePanel()">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-</div>
+<div class="settings-trigger" id="gearBtn" onclick="togglePanel()">⚙️</div>
 
 <div class="side-panel" id="sidePanel">
-    <h3 style="margin:0; font-weight:200; letter-spacing:4px; text-align:center;">STORAGE</h3>
-    <div style="display:flex; flex-direction:column; gap:10px; background:rgba(255,255,255,0.03); padding:15px; border-radius:20px;">
-        <input type="text" id="panel-url" placeholder="YouTube URL...">
-        <div style="display:flex; gap:8px;">
-            <button class="btn-action btn-paste" style="flex:1" onclick="quickPaste('panel-url')">PASTE</button>
-            <button class="btn-action btn-play" style="flex:1" onclick="loadFrom('panel-url')">PLAY</button>
-        </div>
-        <div style="display:flex; gap:8px;">
-            <select id="target-list" style="flex:2; background:#000; color:white; border:1px solid var(--glass); border-radius:10px; padding:5px; outline:none;"></select>
-            <button class="btn-action btn-play" style="flex:1; background:#55efc4;" onclick="saveToPlaylist()">ADD</button>
-        </div>
+    <h3 style="letter-spacing:2px;">STORAGE</h3>
+    <input type="text" id="panel-url" placeholder="URLを保存...">
+    <div style="display:flex; gap:5px; margin-top:10px;">
+        <select id="target-list" style="flex:1; background:#000; color:white; border-radius:5px; border:1px solid var(--glass);"></select>
+        <button class="btn-action btn-play" onclick="saveToPlaylist()">ADD</button>
     </div>
     <div class="playlist-scroll" id="playlistArea"></div>
 </div>
 
 <script>
-    const STORAGE_KEY = 'dat_yt_hub_final_v5';
-    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || Array.from({length: 10}, (_, i) => ({ name: `List ${i+1}`, vids: [] }));
-    let isGameRunning = false;
+    // システム系
+    const STORAGE_KEY = 'dat_yt_hub_v6';
+    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || Array.from({length: 5}, (_, i) => ({ name: `List ${i+1}`, vids: [] }));
 
     function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); renderUI(); }
-    
-    function togglePanel() { 
-        const panel = document.getElementById('sidePanel');
-        const gear = document.getElementById('gearBtn');
-        panel.classList.toggle('open');
-        gear.classList.toggle('active');
+    function togglePanel() { document.getElementById('sidePanel').classList.toggle('open'); }
+
+    function extractID(url) {
+        const reg = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|live\/)([^#\&\?]*).*/;
+        const match = url.match(reg);
+        return (match && match[2].length === 11) ? match[2] : (url.length === 11 ? url : null);
+    }
+
+    function loadFrom(inputId) {
+        const id = extractID(document.getElementById(inputId).value.trim());
+        if(id) document.getElementById('player').src = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&rel=0`;
+    }
+
+    async function quickPaste(id) { 
+        const text = await navigator.clipboard.readText(); 
+        document.getElementById(id).value = text; 
     }
 
     function renderUI() {
@@ -139,130 +122,116 @@
         db.forEach((list, i) => {
             const opt = document.createElement('option'); opt.value = i; opt.innerText = list.name;
             sel.appendChild(opt);
-            const card = document.createElement('div'); card.className = 'playlist-card';
-            card.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><h4 style="margin:0; color:var(--accent); font-size:0.8rem;">${list.name}</h4><span style="font-size:0.6rem; cursor:pointer; color:#ff7675;" onclick="resetList(${i})">RESET</span></div>`;
-            list.vids.forEach((id, vIdx) => {
-                const item = document.createElement('div'); item.className = 'vid-item';
-                item.innerHTML = `<span style="cursor:pointer; opacity:0.6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;" onclick="playById('${id}')">ID: ${id}</span><span style="color:#444; cursor:pointer; margin-left:10px;" onclick="delVid(${i},${vIdx})">×</span>`;
+            const card = document.createElement('div');
+            card.innerHTML = `<h4 style="color:var(--accent); font-size:0.7rem;">${list.name}</h4>`;
+            list.vids.forEach(vid => {
+                const item = document.createElement('div');
+                item.style.fontSize = '0.7rem'; item.style.padding = '5px';
+                item.innerText = `ID: ${vid}`;
+                item.onclick = () => { document.getElementById('player').src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1`; };
                 card.appendChild(item);
             });
             area.appendChild(card);
         });
     }
-
-    function resetList(idx) { if(confirm('Listをリセットしますか？')) { db[idx].vids = []; saveDB(); } }
-    function delVid(lIdx, vIdx) { db[lIdx].vids.splice(vIdx, 1); saveDB(); }
-
-    // URL解析の修正：様々な形式に対応
-    function extractID(url) {
-        if (!url) return null;
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : (url.length === 11 ? url : null);
-    }
-
-    function loadFrom(inputId) { 
-        const input = document.getElementById(inputId);
-        const id = extractID(input.value.trim()); 
-        if(id) {
-            playById(id);
-        } else {
-            alert('有効なYouTube URLを入力してね！');
-        }
-    }
-
-    // 再生用iframeのURL生成の修正
-    function playById(id) { 
-        // originパラメータを追加することでAPI連携の準備を整える（必要に応じて）
-        const embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&enablejsapi=1&rel=0`;
-        document.getElementById('player').src = embedUrl; 
-    }
-
-    async function quickPaste(inputId) { 
-        try { 
-            const text = await navigator.clipboard.readText(); 
-            document.getElementById(inputId).value = text; 
-        } catch(e) {
-            console.error("Paste failed:", e);
-        } 
-    }
-
     function saveToPlaylist() {
-        const id = extractID(document.getElementById('panel-url').value.trim());
-        const idx = document.getElementById('target-list').value;
-        if(id) { 
-            db[idx].vids.push(id); 
-            saveDB(); 
-            document.getElementById('panel-url').value = ''; 
-        }
+        const id = extractID(document.getElementById('panel-url').value);
+        if(id) { db[document.getElementById('target-list').value].vids.push(id); saveDB(); }
     }
 
-    // ゲームロジック
+    // ゲーム系：ドットハイウェイ回避
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const container = document.getElementById('game-container');
-    let w, h, score = 0, combo = 0, stars = [], particles = [];
+    let w, h, score = 0, isGameRunning = false, dist = 0;
+    let player = { x: 0, y: 0, w: 40, h: 70 };
+    let enemies = [];
+    let lanes = [];
 
-    function initCanvas() { 
-        w = canvas.width = container.clientWidth; 
-        h = canvas.height = container.clientHeight; 
+    function init() {
+        w = canvas.width = container.clientWidth;
+        h = canvas.height = container.clientHeight;
+        player.x = w / 2 - player.w / 2;
+        player.y = h - 120;
+        lanes = [w*0.2, w*0.4, w*0.6, w*0.8];
     }
-    window.addEventListener('resize', initCanvas); 
-    initCanvas();
+    window.addEventListener('resize', init);
+    init();
+
+    canvas.addEventListener('mousemove', (e) => {
+        if(!isGameRunning) return;
+        const rect = canvas.getBoundingClientRect();
+        player.x = (e.clientX - rect.left) - player.w / 2;
+    });
 
     function toggleGameState() {
         isGameRunning = !isGameRunning;
-        const btn = document.getElementById('toggleGame');
-        btn.innerText = isGameRunning ? 'PAUSE' : 'START';
-        btn.classList.toggle('active', isGameRunning);
+        document.getElementById('toggleGame').innerText = isGameRunning ? 'PAUSE' : 'START';
+        document.getElementById('toggleGame').classList.toggle('active', isGameRunning);
     }
 
-    class Star {
-        constructor() { this.init(); }
-        init() { this.x = Math.random() * w; this.y = h + 100; this.r = Math.random() * 12 + 8; this.v = -(Math.random() * 2.5 + 1.5); this.h = 240 + Math.random() * 40; }
-        update() { if(!isGameRunning) return; this.y += this.v; if(this.y < -50) this.init(); }
-        draw() {
-            ctx.shadowBlur = 35; ctx.shadowColor = `hsla(${this.h},100%,70%,0.5)`;
-            ctx.fillStyle = `hsla(${this.h},100%,90%,0.95)`;
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-    }
-
-    class P {
-        constructor(x,y,h) { this.x=x; this.y=y; this.h=h; this.vx=(Math.random()-0.5)*18; this.vy=(Math.random()-0.5)*18; this.l=1; }
-        update() { if(!isGameRunning) return; this.x+=this.vx; this.y+=this.vy; this.l-=0.03; }
-        draw() { ctx.fillStyle=`hsla(${this.h},100%,70%,${this.l})`; ctx.beginPath(); ctx.arc(this.x,this.y,3.5,0,Math.PI*2); ctx.fill(); }
-    }
-
-    for(let i=0; i<22; i++) stars.push(new Star());
-
-    canvas.addEventListener('mousedown', (e) => {
+    function spawnEnemy() {
         if(!isGameRunning) return;
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
-        let hit = false;
-        stars.forEach(s => { if(Math.sqrt((mx-s.x)**2 + (my-s.y)**2) < s.r + 55) { 
-            hit = true; score += 100 * (combo + 1); combo++; 
-            for(let i=0; i<35; i++) particles.push(new P(s.x, s.y, s.h)); s.init(); 
-        } });
-        if(!hit) combo = 0;
-        document.getElementById('score').innerText = score.toLocaleString();
-        document.getElementById('combo').innerText = `COMBO ${combo}`;
-    });
+        const lane = lanes[Math.floor(Math.random() * lanes.length)];
+        enemies.push({ x: lane - 20, y: -100, w: 40, h: 70, speed: 5 + (dist/1000) });
+        setTimeout(spawnEnemy, Math.max(300, 800 - (dist/200)));
+    }
 
-    function resetGame() { score=0; combo=0; document.getElementById('score').innerText="0"; document.getElementById('combo').innerText="COMBO 0"; }
+    function resetGame() {
+        score = 0; dist = 0; enemies = [];
+        document.getElementById('score').innerText = "0";
+        document.getElementById('distance').innerText = "0m";
+    }
 
     function animate() {
-        ctx.fillStyle = 'rgba(3, 3, 5, 0.45)';
-        ctx.fillRect(0,0,w,h);
-        stars.forEach(s => { s.update(); s.draw(); });
-        particles = particles.filter(p => p.l > 0);
-        particles.forEach(p => { p.update(); p.draw(); });
+        ctx.fillStyle = '#050508';
+        ctx.fillRect(0, 0, w, h);
+
+        // 背景のライン
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        lanes.forEach(l => {
+            ctx.beginPath(); ctx.moveTo(l, 0); ctx.lineTo(l, h); ctx.stroke();
+        });
+
+        if(isGameRunning) {
+            dist++;
+            document.getElementById('distance').innerText = `${Math.floor(dist/10)}m`;
+
+            // 自機描画 (GTR風シルエット)
+            ctx.fillStyle = varColor('--accent');
+            ctx.shadowBlur = 15; ctx.shadowColor = varColor('--accent');
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+            ctx.fillStyle = '#fff'; ctx.fillRect(player.x+5, player.y+10, 30, 15); // ガラス
+
+            // 敵車両
+            enemies.forEach((en, i) => {
+                en.y += en.speed;
+                ctx.fillStyle = '#ff7675';
+                ctx.shadowColor = '#ff7675';
+                ctx.fillRect(en.x, en.y, en.w, en.h);
+                
+                // 衝突判定
+                if (player.x < en.x + en.w && player.x + player.w > en.x && player.y < en.y + en.h && player.y + player.h > en.y) {
+                    isGameRunning = false;
+                    alert("CRASH! Score: " + score);
+                    resetGame();
+                    toggleGameState();
+                }
+
+                if(en.y > h) {
+                    enemies.splice(i, 1);
+                    score += 10;
+                    document.getElementById('score').innerText = score;
+                }
+            });
+            ctx.shadowBlur = 0;
+        }
         requestAnimationFrame(animate);
     }
 
-    renderUI(); animate();
+    function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name); }
+
+    renderUI(); animate(); spawnEnemy();
 </script>
 </body>
 </html>
