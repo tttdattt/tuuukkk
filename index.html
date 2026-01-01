@@ -152,24 +152,24 @@
 
     // --- Utilities
     function sanitizeNumberInput(val){
-      // allow digits and at most one dot
-      const cleaned = val.replace(/[^\d.]/g,'');
+      // build cleaned string without using backslash escapes
+      const chars = [];
+      for(const ch of String(val)){
+        if(ch >= '0' && ch <= '9') chars.push(ch);
+        if(ch === '.') chars.push(ch);
+      }
+      const cleaned = chars.join('');
       const parts = cleaned.split('.');
-      if(parts.length<=1) return cleaned;
-      return parts[0] + '.' + parts.slice(1).join('').slice(0,6); // limit decimals
+      if(parts.length <= 1) return cleaned;
+      return parts[0] + '.' + parts.slice(1).join('').slice(0,6);
     }
 
     // Prevent selecting same currency in both selects
     function updateDisabledOptions(){
       const from = fromSel.value;
       const to = toSel.value;
-      Array.from(fromSel.options).forEach(opt=>{
-        opt.disabled = false;
-      });
-      Array.from(toSel.options).forEach(opt=>{
-        opt.disabled = false;
-      });
-      // disable selected ones on the opposite select
+      Array.from(fromSel.options).forEach(opt=>{ opt.disabled = false; });
+      Array.from(toSel.options).forEach(opt=>{ opt.disabled = false; });
       const fromOpt = toSel.querySelector(`option[value="${from}"]`);
       const toOpt = fromSel.querySelector(`option[value="${to}"]`);
       if(fromOpt) fromOpt.disabled = true;
@@ -224,20 +224,75 @@
     fromSel.addEventListener('change',()=>{ updateDisabledOptions(); });
     toSel.addEventListener('change',()=>{ updateDisabledOptions(); });
 
-    // Conversion logic: fetch rate, then calculate on this page
-    async function fetchRate(base, symbol){
+    // --- Rate fetching with fallbacks and optional CORS-proxy fallback
+    async function tryFetch(url){
       try{
-        const url = `https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}&symbols=${encodeURIComponent(symbol)}`;
         const res = await fetch(url);
-        if(!res.ok) throw new Error('ネットワーク応答エラー');
-        const data = await res.json();
-        if(!data || !data.rates || typeof data.rates[symbol] === 'undefined') throw new Error('データエラー');
-        return {rate: data.rates[symbol], date: data.date};
+        if(!res.ok) throw new Error('network');
+        return await res.json();
       }catch(err){
-        throw err;
+        console.warn('direct fetch failed for',url,err);
+        return null;
       }
     }
 
+    async function tryFetchWithProxy(url){
+      // Use AllOrigins proxy as a fallback to bypass CORS when necessary
+      // Note: public proxies may have rate limits or downtime
+      const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+      try{
+        const res = await fetch(proxy);
+        if(!res.ok) throw new Error('proxy network');
+        return await res.json();
+      }catch(err){
+        console.warn('proxy fetch failed for',url,err);
+        return null;
+      }
+    }
+
+    async function fetchRate(base, symbol){
+      // Try multiple reliable public endpoints (some may be rate-limited)
+      const endpoints = [
+        `https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}&symbols=${encodeURIComponent(symbol)}`,
+        `https://api.frankfurter.app/latest?from=${encodeURIComponent(base)}&to=${encodeURIComponent(symbol)}`,
+        `https://open.er-api.com/v6/latest/${encodeURIComponent(base)}`
+      ];
+
+      for(const ep of endpoints){
+        const data = await tryFetch(ep);
+        if(data){
+          // normalize responses
+          if(data.rates && typeof data.rates[symbol] !== 'undefined'){
+            return {rate: data.rates[symbol], date: data.date || data.time_last_update_utc || ''};
+          }
+          // frankfurter returns rates with "to" param as key when used
+          if(data.rates && Object.keys(data.rates).length===1){
+            const r = Object.values(data.rates)[0];
+            return {rate: r, date: data.date || ''};
+          }
+          // some providers put rates under different keys
+          if(data.conversion_rates && data.conversion_rates[symbol]){
+            return {rate: data.conversion_rates[symbol], date: data.time_last_update_utc || ''};
+          }
+        }
+        // if direct fetch failed, try proxy
+        const viaProxy = await tryFetchWithProxy(ep);
+        if(viaProxy){
+          if(viaProxy.rates && typeof viaProxy.rates[symbol] !== 'undefined'){
+            return {rate: viaProxy.rates[symbol], date: viaProxy.date || ''};
+          }
+          if(viaProxy.rates && Object.keys(viaProxy.rates).length===1){
+            return {rate: Object.values(viaProxy.rates)[0], date: viaProxy.date || ''};
+          }
+          if(viaProxy.conversion_rates && viaProxy.conversion_rates[symbol]){
+            return {rate: viaProxy.conversion_rates[symbol], date: viaProxy.time_last_update_utc || ''};
+          }
+        }
+      }
+      throw new Error('all endpoints failed');
+    }
+
+    // Conversion logic: fetch rate, then calculate on this page
     async function doConvert(){
       const amount = parseFloat(amountInput.value || '0');
       if(isNaN(amount) || amount <= 0){
@@ -252,10 +307,10 @@
         const {rate,date} = await fetchRate(from,to);
         const result = amount * rate;
         converted.innerText = `結果: ${result.toLocaleString(undefined,{maximumFractionDigits:6})} ${to}`;
-        rateInfo.innerText = `レート: 1 ${from} = ${rate} ${to} （${date}）`;
+        rateInfo.innerText = `レート: 1 ${from} = ${rate} ${to} ${date? '('+date+')':''}`;
       }catch(err){
         converted.innerText = '結果: -';
-        rateInfo.innerText = 'レート取得エラー';
+        rateInfo.innerText = 'レート取得エラー — コンソールを確認';
         console.error(err);
       }finally{
         convertBtn.disabled = false; convertBtn.innerText = '変換';
@@ -274,6 +329,10 @@
 
     // initialize a small placeholder
     amountInput.value = '';
+
+    // Helpful note for users who open via file://
+    // Some browsers restrict cross-origin requests when a page is opened directly from the file system.
+    // If you still see errors, run a simple local server in the folder and open http://localhost:8000/ (python -m http.server) or use VSCode Live Server.
   </script>
 </body>
 </html>
