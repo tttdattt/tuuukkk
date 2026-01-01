@@ -1,526 +1,279 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Space Game</title>
-<style>
-  :root{--bg:#000;--ui:#fff;--accent:#a29bfe;--good:#7bed9f;--glass:rgba(12,12,18,0.92);--border:rgba(255,255,255,0.06);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--ui);overflow:hidden}
-  canvas{display:block;width:100vw;height:100vh;background:linear-gradient(#000,#02020a)}
-  .ui{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
-  .hud{position:absolute;left:18px;top:18px;pointer-events:auto}
-  .hp-outer{width:360px;height:8px;background:rgba(255,255,255,0.03);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
-  .hp-inner{height:100%;width:100%;background:linear-gradient(90deg,var(--good),var(--accent));transition:width 0.18s}
-  .lv{font-weight:800;color:var(--accent);letter-spacing:2px;margin:8px 0 4px;font-size:12px}
-  .score{font-size:32px;font-weight:300;margin-top:6px}
-  .shop-btn{position:absolute;right:18px;top:18px;width:56px;height:56px;border-radius:50%;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;pointer-events:auto;cursor:pointer}
-  .shop-panel{position:absolute;right:18px;top:90px;width:380px;background:var(--glass);border-radius:14px;padding:14px;border:1px solid var(--border);pointer-events:auto;display:none}
-  .shop-panel.open{display:block}
-  .shop-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
-  .buy{padding:8px 12px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
-  .buy.ready{background:var(--accent);color:#000}
-  .buy.equipped{background:#32d74b;color:#000}
-  .buy.locked{opacity:0.4;cursor:not-allowed}
-  .controls{position:absolute;left:18px;bottom:18px;pointer-events:auto;display:flex;gap:10px}
-  .btn{background:var(--glass);border:1px solid var(--border);color:var(--ui);padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer;pointer-events:auto}
-  .overlay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;opacity:1}
-  .main{font-size:56px;font-weight:900}
-  .sub{font-size:12px;color:#8b8f95;letter-spacing:6px;margin-top:6px;text-transform:uppercase}
-  .debug{position:absolute;left:18px;top:140px;color:#9aa0a6;font-size:12px;pointer-events:auto}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>通貨換算</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --muted:#8b95a1;
+      --accent:#0a84ff;
+      --radius:16px;
+      --shadow: 0 6px 18px rgba(18,22,30,0.06);
+      --shadow-2: 0 4px 10px rgba(18,22,30,0.05);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%;background:var(--bg);margin:0}
+    .app{
+      max-width:1100px;margin:40px auto;padding:28px;display:flex;gap:24px;align-items:flex-start;
+    }
+    /* Sidebar */
+    .sidebar{
+      width:320px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:18px;
+    }
+    .sidebar h2{margin:0;font-size:14px;color:var(--muted);font-weight:600}
+    .select-group{display:flex;flex-direction:column;gap:10px}
+    label{font-size:12px;color:var(--muted)}
+    select{appearance:none;padding:12px 14px;border-radius:12px;border:1px solid #e6e9ee;background:transparent;font-size:15px}
+
+    /* Main */
+    .main{flex:1;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;position:relative;display:flex;flex-direction:column;gap:16px}
+    .top-row{display:flex;justify-content:space-between;align-items:center}
+    .clock{font-size:12px;color:var(--muted)}
+    .panel{display:flex;gap:18px}
+    .input-area{flex:1;display:flex;flex-direction:column;gap:10px}
+
+    .amount-display{background:#f6f8fb;border-radius:12px;padding:18px;border:1px solid #eef2f6;font-size:28px;font-weight:600;color:#0b1220;display:flex;align-items:center;justify-content:space-between}
+    .result{font-size:20px;color:var(--muted)}
+
+    /* Numeric pad */
+    .pad{width:320px;background:linear-gradient(180deg,#ffffff,#fbfdff);border-radius:14px;padding:14px;border:1px solid #eef2f6;box-shadow:var(--shadow-2);display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .key{padding:18px;border-radius:12px;background:transparent;border:1px solid #eef2f6;font-size:18px;font-weight:600;cursor:pointer;user-select:none}
+    .key:active{transform:translateY(1px)}
+    .key.confirm{grid-column:span:3;background:var(--accent);color:white;border:none}
+    .key.clear{background:transparent;color:#ff6b6b}
+
+    /* small helpers */
+    .muted{color:var(--muted);font-size:13px}
+    .controls{display:flex;gap:8px;align-items:center}
+    .swap-btn{padding:8px 12px;border-radius:10px;border:1px solid #eef2f6;background:transparent;cursor:pointer}
+
+    /* responsive */
+    @media (max-width:900px){
+      .app{flex-direction:column;padding:16px}
+      .sidebar{width:100%}
+      .pad{width:100%}
+    }
+  </style>
 </head>
 <body>
-<canvas id="cv"></canvas>
+  <div class="app">
+    <aside class="sidebar">
+      <h2>通貨設定</h2>
+      <div class="select-group">
+        <div>
+          <label for="from">変換元 (From)</label>
+          <select id="from">
+            <option value="USD">USD — 米ドル</option>
+            <option value="JPY">JPY — 日本円</option>
+            <option value="EUR">EUR — ユーロ</option>
+            <option value="GBP">GBP — 英ポンド</option>
+            <option value="AUD">AUD — 豪ドル</option>
+            <option value="CAD">CAD — カナダドル</option>
+            <option value="CNY">CNY — 中国元</option>
+          </select>
+        </div>
+        <div>
+          <label for="to">変換先 (To)</label>
+          <select id="to">
+            <option value="JPY">JPY — 日本円</option>
+            <option value="USD">USD — 米ドル</option>
+            <option value="EUR">EUR — ユーロ</option>
+            <option value="GBP">GBP — 英ポンド</option>
+            <option value="AUD">AUD — 豪ドル</option>
+            <option value="CAD">CAD — カナダドル</option>
+            <option value="CNY">CNY — 中国元</option>
+          </select>
+        </div>
+      </div>
+      <div class="muted">* 選択済みの通貨はもう一方では選択できません</div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+        <button class="swap-btn" id="swap">入れ替え</button>
+        <div class="muted">最新レートは外部APIから取得</div>
+      </div>
+    </aside>
 
-<div class="ui">
-  <div class="hud">
-    <div class="lv" id="lv-ui">PILOT RANK: LV.1</div>
-    <div class="hp-outer"><div id="hpbar" class="hp-inner"></div></div>
-    <div class="score" id="score-ui">0</div>
+    <main class="main">
+      <div class="top-row">
+        <div>
+          <h1 style="margin:0;font-size:16px">通貨換算</h1>
+          <div class="muted" style="margin-top:6px">リアルタイムレート参照 / 計算はこのページ内で実行</div>
+        </div>
+        <div class="clock" id="tokyoClock">--:--:--</div>
+      </div>
+
+      <div class="panel">
+        <div class="input-area">
+          <div class="amount-display">
+            <div style="flex:1;">金額</div>
+            <input id="amountInput" type="text" inputmode="decimal" placeholder="0" style="border:none;background:transparent;font-size:28px;font-weight:700;text-align:right;outline:none;width:220px" />
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="result" id="converted">結果: -</div>
+            <div class="muted" id="rateInfo">レート: -</div>
+          </div>
+
+        </div>
+
+        <div>
+          <div class="pad" id="numpad" aria-hidden="false">
+            <button class="key">7</button>
+            <button class="key">8</button>
+            <button class="key">9</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key">6</button>
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key clear">C</button>
+            <button class="key">0</button>
+            <button class="key">.</button>
+            <button class="key confirm" id="convertBtn">変換</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
 
-  <div class="shop-btn" id="shop-toggle" title="ARMORY">🛒</div>
-  <div class="shop-panel" id="shop-panel"><div style="font-weight:800;margin-bottom:8px">ARMORY</div><div id="shop-list"></div></div>
+  <script>
+    // --- DOM
+    const fromSel = document.getElementById('from');
+    const toSel = document.getElementById('to');
+    const amountInput = document.getElementById('amountInput');
+    const converted = document.getElementById('converted');
+    const rateInfo = document.getElementById('rateInfo');
+    const convertBtn = document.getElementById('convertBtn');
+    const swapBtn = document.getElementById('swap');
 
-  <div class="controls">
-    <button class="btn" id="start">ENGAGE</button>
-    <button class="btn" id="reset">REBOOT</button>
-    <button class="btn" id="debug-toggle">DEBUG</button>
-  </div>
+    // --- Utilities
+    function sanitizeNumberInput(val){
+      // allow digits and at most one dot
+      const cleaned = val.replace(/[^\d.]/g,'');
+      const parts = cleaned.split('.');
+      if(parts.length<=1) return cleaned;
+      return parts[0] + '.' + parts.slice(1).join('').slice(0,6); // limit decimals
+    }
 
-  <div class="overlay" id="overlay"><div class="main" id="overlay-main">READY</div><div class="sub" id="overlay-sub">Awaiting Command</div></div>
-
-  <div class="debug" id="debug-panel" style="display:none"></div>
-</div>
-
-<script>
-/* Stable Final — Start must work, loop protected, debug hooks, shop sync, potions, pools */
-(() => {
-  // Canvas and sizing
-  const cvs = document.getElementById('cv'), ctx = cvs.getContext('2d');
-  let DPR = Math.min(window.devicePixelRatio || 1, 2);
-  let W = innerWidth, H = innerHeight;
-  function resize(){
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    W = innerWidth; H = innerHeight;
-    cvs.width = Math.round(W * DPR);
-    cvs.height = Math.round(H * DPR);
-    cvs.style.width = W + 'px';
-    cvs.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  // Parameters
-  const POINTS_PER_LEVEL = 15000;
-  const POTION_P_BASE = 0.006;
-  const POTION_CAP = 3;
-  const POTION_FALL = 1.2;
-  const POTION_COOLDOWN_FRAMES = 300;
-  const MAX_PARTICLES = 900;
-  const BULLET_POOL_SIZE = 300;
-  const PARTICLE_POOL_SIZE = 800;
-
-  // State
-  let frame = 0;
-  let running = false;
-  let score = 0;
-  let shake = 0;
-  let hitStop = 0;
-  let potionCooldown = 0;
-
-  const player = { x: W/2, y: H - 140, hp:10000, mhp:10000, lv:1, inv:0, size:24 };
-
-  // Collections
-  const enemies = [], pBullets = [], eBullets = [], particles = [], potions = [];
-
-  // Pools (simple, robust)
-  const bulletPool = Array.from({length:BULLET_POOL_SIZE}, () => ({inUse:false}));
-  const particlePool = Array.from({length:PARTICLE_POOL_SIZE}, () => ({inUse:false}));
-  function getBulletObj(){
-    for(const b of bulletPool) if(!b.inUse){ b.inUse = true; b.reset && b.reset(); return b; }
-    const n = { inUse:true }; bulletPool.push(n); return n;
-  }
-  function releaseBulletObj(b){
-    try{ b.inUse = false; } catch(e){ /* swallow */ }
-  }
-  function getParticleObj(){
-    for(const p of particlePool) if(!p.inUse){ p.inUse = true; return p; }
-    const n = { inUse:true }; particlePool.push(n); return n;
-  }
-  function releaseParticleObj(p){ try{ p.inUse = false; } catch(e){} }
-
-  // Weapons & loadout
-  const weaponDB = [
-    { id:'ion', name:'Ion Blaster', slot:'main', cost:0, dmg:120, cooldown:8, color:'#ffffff' },
-    { id:'plasma', name:'Plasma Cannon', slot:'main', cost:15000, dmg:480, cooldown:18, color:'#a29bfe' },
-    { id:'missile', name:'Auto Missiles', slot:'sub', cost:30000, dmg:1200, cooldown:90, homing:true, color:'#ff6b6b' },
-    { id:'nova', name:'Supernova Beam', slot:'wing', cost:80000, dmg:6000, cooldown:360, color:'#ffd166' }
-  ];
-  let loadout = JSON.parse(localStorage.getItem('sg_loadout') || 'null') || { main:'ion', sub:'none', wing:'none' };
-  let lastShot = { main:-9999, sub:-9999, wing:-9999 };
-
-  // UI elements
-  const shopToggle = document.getElementById('shop-toggle'), shopPanel = document.getElementById('shop-panel'), shopList = document.getElementById('shop-list');
-  const scoreUI = document.getElementById('score-ui'), hpBar = document.getElementById('hpbar'), lvUI = document.getElementById('lv-ui');
-  const overlay = document.getElementById('overlay'), overlayMain = document.getElementById('overlay-main'), startBtn = document.getElementById('start');
-  const debugToggle = document.getElementById('debug-toggle'), debugPanel = document.getElementById('debug-panel');
-
-  shopToggle.addEventListener('click', ()=> shopPanel.classList.toggle('open'));
-  debugToggle.addEventListener('click', ()=> { debugPanel.style.display = debugPanel.style.display === 'block' ? 'none' : 'block'; });
-
-  function updateShopUI(){
-    shopList.innerHTML = '';
-    for(const w of weaponDB){
-      const owned = Object.values(loadout).includes(w.id);
-      const affordable = score >= w.cost;
-      const item = document.createElement('div'); item.className = 'shop-item';
-      item.innerHTML = `<div style="min-width:200px"><b>${w.name}</b><div style="font-size:11px;color:#9aa0a6">${w.slot.toUpperCase()} • ${w.cost.toLocaleString()}</div></div>`;
-      const btn = document.createElement('button'); btn.className = 'buy';
-      if(owned){ btn.classList.add('equipped'); btn.innerText='EQUIPPED'; btn.disabled = true; }
-      else if(w.cost === 0){ btn.classList.add('ready'); btn.innerText='EQUIP'; btn.disabled = false; }
-      else if(affordable){ btn.classList.add('ready'); btn.innerText = `BUY ${w.cost.toLocaleString()}`; btn.disabled = false; }
-      else { btn.classList.add('locked'); btn.innerText = `LOCKED ${w.cost.toLocaleString()}`; btn.disabled = true; }
-      btn.addEventListener('click', () => {
-        if(btn.disabled){ item.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:160}); shake=8; return; }
-        buyWeapon(w.id, w.cost);
+    // Prevent selecting same currency in both selects
+    function updateDisabledOptions(){
+      const from = fromSel.value;
+      const to = toSel.value;
+      Array.from(fromSel.options).forEach(opt=>{
+        opt.disabled = false;
       });
-      item.appendChild(btn); shopList.appendChild(item);
+      Array.from(toSel.options).forEach(opt=>{
+        opt.disabled = false;
+      });
+      // disable selected ones on the opposite select
+      const fromOpt = toSel.querySelector(`option[value="${from}"]`);
+      const toOpt = fromSel.querySelector(`option[value="${to}"]`);
+      if(fromOpt) fromOpt.disabled = true;
+      if(toOpt) toOpt.disabled = true;
     }
-  }
 
-  function buyWeapon(id, cost){
-    if(score < cost) return;
-    score -= cost;
-    const w = weaponDB.find(x => x.id === id);
-    if(!w) return;
-    loadout[w.slot] = id;
-    localStorage.setItem('sg_loadout', JSON.stringify(loadout));
-    updateShopUI();
-    updateHUD();
-    console.log('[SG] bought', id);
-  }
-
-  // Enemy utilities
-  function levelFromScore(s){ return Math.min(99, Math.floor(s / POINTS_PER_LEVEL) + 1); }
-  function enemyBaseHP(type, lvl){
-    const m = 1 + 0.12*(lvl-1);
-    if(type==='scout') return Math.floor(100*m);
-    if(type==='gunner') return Math.floor(300*m);
-    if(type==='tank') return Math.floor(800*m);
-    if(type==='rusher') return Math.floor(500*m);
-    if(type==='miniboss') return Math.floor(2500*m);
-    if(type==='midboss') return Math.floor(7000*m);
-    if(type==='bigboss') return Math.floor(20000*m);
-    if(type==='infboss') return Math.floor(50000*m);
-    return Math.floor(200*m);
-  }
-
-  let enemyId = 1;
-  function makeEnemy(type, lvl){
-    const e = { _id: enemyId++, type, x: Math.random()*W, y: -60, w:40, h:40, vy:2, phase:0, boss:false, c:'#fff' };
-    if(type==='scout'){ e.w=32; e.h=32; e.vy = 3.2 + Math.random()*1; e.c='#5a6cff'; }
-    if(type==='gunner'){ e.w=46; e.h=40; e.vy = 1.8 + Math.random()*0.6; e.c='#f39c12'; }
-    if(type==='tank'){ e.w=72; e.h=50; e.vy = 1.0 + Math.random()*0.6; e.c='#9b59b6'; }
-    if(type==='rusher'){ e.w=46; e.h=46; e.vy = 2.6 + Math.random()*0.6; e.c='#e67e22'; }
-    e.hp = e.mhp = enemyBaseHP(type, lvl);
-    return e;
-  }
-  function spawnMob(){ const r = Math.random(), lv = player.lv; if(r>0.9) enemies.push(makeEnemy('rusher', lv)); else if(r>0.65) enemies.push(makeEnemy('tank', lv)); else if(r>0.4) enemies.push(makeEnemy('gunner', lv)); else enemies.push(makeEnemy('scout', lv)); }
-
-  function makeBoss(kind, lvl){
-    const b = { _id: enemyId++, type: kind, boss: true, phase: 0 };
-    if(kind==='miniboss'){ return Object.assign(b, { x: Math.random()*(W-200)+100, y:-220, w:160, h:80, vy:0.6, c:'#6a5acd', hp:enemyBaseHP('miniboss', lvl), mhp:enemyBaseHP('miniboss', lvl) }); }
-    if(kind==='midboss'){ return Object.assign(b, { x: Math.random()*(W-240)+120, y:-300, w:200, h:100, vy:0.45, c:'#8b0000', hp:enemyBaseHP('midboss', lvl), mhp:enemyBaseHP('midboss', lvl) }); }
-    if(kind==='bigboss'){ return Object.assign(b, { x: W/2, y:-360, w:280, h:140, vy:0.35, c:'#111', hp:enemyBaseHP('bigboss', lvl), mhp:enemyBaseHP('bigboss', lvl) }); }
-    return Object.assign(b, { x: W/2, y:-420, w:340, h:180, vy:0.25, c:'#2a2a6b', hp:enemyBaseHP('infboss', lvl), mhp:enemyBaseHP('infboss', lvl), inf:true });
-  }
-
-  function trySpawnBosses(){
-    const lv = player.lv;
-    if(lv >= 3 && Math.random() < 0.02) enemies.push(makeBoss('miniboss', lv));
-    if(lv >= 5 && Math.random() < 0.01) enemies.push(makeBoss('midboss', lv));
-    if(lv >= 8 && Math.random() < 0.006) enemies.push(makeBoss('bigboss', lv));
-    if(lv > 10 && Math.random() < 0.0006) enemies.push(makeBoss('infboss', lv));
-  }
-
-  // Potions
-  function trySpawnPotion(){
-    if(potions.length >= POTION_CAP) return;
-    const pChance = potionCooldown > 0 ? POTION_P_BASE * 0.15 : POTION_P_BASE;
-    if(Math.random() < pChance){
-      potions.push({ id: Date.now()+Math.random(), x: 40 + Math.random()*(W-80), y: -40, vy: POTION_FALL, size: 22 });
+    // Clock (Tokyo timezone)
+    function updateClock(){
+      const now = new Date();
+      const tokyo = new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Tokyo'}).format(now);
+      document.getElementById('tokyoClock').innerText = tokyo + ' (Tokyo)';
     }
-  }
-  function potionPicked(){ potionCooldown = POTION_COOLDOWN_FRAMES; }
+    setInterval(updateClock,1000); updateClock();
 
-  // Shooting helpers
-  function getWeapon(id){ return weaponDB.find(w=>w.id===id) || {dmg:0,cooldown:999}; }
-  function tryShoot(){
-    const now = frame;
-    const wm = getWeapon(loadout.main);
-    if(now - lastShot.main >= wm.cooldown){ shootMain(wm); lastShot.main = now; }
-    if(loadout.sub !== 'none'){ const ws = getWeapon(loadout.sub); if(now - lastShot.sub >= ws.cooldown){ shootSub(ws); lastShot.sub = now; } }
-    if(loadout.wing !== 'none'){ const ww = getWeapon(loadout.wing); if(now - lastShot.wing >= ww.cooldown){ shootWing(ww); lastShot.wing = now; } }
-  }
-
-  function spawnPlayerBullet(x,y,vx,vy,power,color,sz,homing,targetId){
-    const b = getBulletObj();
-    b.x = x; b.y = y; b.vx = vx; b.vy = vy; b.p = power; b.c = color || '#fff'; b.sz = sz || 6; b.homing = !!homing; b.targetId = targetId || null;
-    pBullets.push(b);
-  }
-  function shootMain(w){
-    if(w.id === 'ion'){
-      spawnPlayerBullet(player.x, player.y-28, 0, -14, w.dmg, w.color||'#fff', 6);
-      spawnPlayerBullet(player.x-12, player.y-18, -0.6, -13, Math.floor(w.dmg*0.6), w.color||'#fff', 5);
-      spawnPlayerBullet(player.x+12, player.y-18, 0.6, -13, Math.floor(w.dmg*0.6), w.color||'#fff', 5);
-    } else if(w.id === 'plasma'){
-      spawnPlayerBullet(player.x, player.y-30, 0, -12, w.dmg, w.color, 10);
-    }
-  }
-  function shootSub(w){
-    if(w.homing){
-      const targets = enemies.slice(0,3);
-      if(targets.length === 0) return;
-      for(const t of targets) spawnPlayerBullet(player.x, player.y, (t.x-player.x)/40, (t.y-player.y)/40, w.dmg, w.color, 10, true, t._id);
-    }
-  }
-  function shootWing(w){
-    if(w.id === 'nova'){ for(let i=-3;i<=3;i++) spawnPlayerBullet(player.x + i*8, player.y-18, i*0.6, -18, Math.floor(w.dmg/4), w.color, 12); }
-  }
-
-  // Particles
-  function emitParticles(x,y,count,color,speed){
-    for(let n=0;n<count;n++){
-      const p = getParticleObj(); p.x = x; p.y = y; p.vx = (Math.random()-0.5)*(speed||12); p.vy = (Math.random()-0.5)*(speed||12); p.l = 1; p.c = color || '#fff';
-      particles.push(p);
-      if(particles.length > MAX_PARTICLES){ const extra = particles.splice(0, particles.length - MAX_PARTICLES); for(const r of extra) releaseParticleObj(r); }
-    }
-  }
-
-  // Update loop (safe)
-  function updateGame(){
-    if(!running) return;
-    if(hitStop > 0){ hitStop--; return; }
-    frame++;
-    player.lv = Math.min(99, levelFromScore(score));
-    player.size = 20 + player.lv*2;
-
-    // Spawns
-    if(frame % Math.max(6, 70 - player.lv*5) === 0) spawnMob();
-    if(frame % 30 === 0) trySpawnPotion();
-    trySpawnBosses();
-
-    tryShoot();
-
-    // Player bullets update (reverse)
-    for(let i=pBullets.length-1;i>=0;i--){
-      const b = pBullets[i];
-      b.x += b.vx; b.y += b.vy;
-      if(b.homing){
-        const tgt = enemies.find(e => e._id === b.targetId) || enemies[0];
-        if(tgt){ const dx = tgt.x - b.x, dy = tgt.y - b.y, m = Math.sqrt(dx*dx + dy*dy) || 1; b.vx += (dx/m)*0.5; b.vy += (dy/m)*0.5; }
+    // Numeric pad behavior
+    document.getElementById('numpad').addEventListener('click', (e)=>{
+      if(!e.target.classList.contains('key')) return;
+      const key = e.target.innerText;
+      if(key === 'C'){
+        amountInput.value = '';
+        converted.innerText = '結果: -';
+        rateInfo.innerText = 'レート: -';
+        return;
       }
-      if(b.y < -200 || b.x < -200 || b.x > W + 200){ releaseBulletObj(b); pBullets.splice(i,1); continue; }
-      // collision
-      for(let j=enemies.length-1;j>=0;j--){
-        const e = enemies[j];
-        const hw = e.w/2 + (b.sz||6), hh = e.h/2 + (b.sz||6);
-        if(Math.abs(b.x - e.x) < hw && Math.abs(b.y - e.y) < hh){
-          e.hp -= b.p;
-          emitParticles(e.x, e.y, 6, e.c, 6);
-          releaseBulletObj(b); pBullets.splice(i,1);
-          if(e.hp <= 0){
-            const base = (e.type==='scout'?50: e.type==='gunner'?150: e.type==='tank'?400: e.type==='rusher'?300: e.type==='miniboss'?2000: e.type==='midboss'?7000: e.type==='bigboss'?20000: e.type==='infboss'?50000:200);
-            const reward = Math.max(25, Math.floor(base * (1 + 0.08*(player.lv-1))));
-            score += reward;
-            hitStop = e.boss ? 20 : 3;
-            shake = e.boss ? 28 : 6;
-            emitParticles(e.x, e.y, 18, e.c, 14);
-            enemies.splice(j,1);
-            updateShopUI();
-            updateHUD();
-          }
-          break;
-        }
+      if(key === '変換') return; // handled separately
+      // append
+      if(key === '.'){
+        if(amountInput.value.includes('.')) return;
+        amountInput.value = amountInput.value ? amountInput.value + '.' : '0.';
+      } else {
+        amountInput.value = (amountInput.value === '0') ? key : amountInput.value + key;
+      }
+      amountInput.value = sanitizeNumberInput(amountInput.value);
+    });
+
+    // keyboard input
+    amountInput.addEventListener('input',(e)=>{
+      const v = sanitizeNumberInput(e.target.value);
+      if(v !== e.target.value) e.target.value = v;
+    });
+
+    // swap
+    swapBtn.addEventListener('click',()=>{
+      const a = fromSel.value; fromSel.value = toSel.value; toSel.value = a;
+      updateDisabledOptions();
+      converted.innerText = '結果: -'; rateInfo.innerText = 'レート: -';
+    });
+
+    // update disabled options initially
+    updateDisabledOptions();
+
+    fromSel.addEventListener('change',()=>{ updateDisabledOptions(); });
+    toSel.addEventListener('change',()=>{ updateDisabledOptions(); });
+
+    // Conversion logic: fetch rate, then calculate on this page
+    async function fetchRate(base, symbol){
+      try{
+        const url = `https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}&symbols=${encodeURIComponent(symbol)}`;
+        const res = await fetch(url);
+        if(!res.ok) throw new Error('ネットワーク応答エラー');
+        const data = await res.json();
+        if(!data || !data.rates || typeof data.rates[symbol] === 'undefined') throw new Error('データエラー');
+        return {rate: data.rates[symbol], date: data.date};
+      }catch(err){
+        throw err;
       }
     }
 
-    // Enemies update
-    for(let i=enemies.length-1;i>=0;i--){
-      const e = enemies[i];
-      e.phase += 0.02;
-      if(e.type==='scout') e.x += Math.sin(frame*0.05 + e._id)*0.6;
-      if(e.type==='gunner') e.x += Math.sin(frame*0.015 + e._id)*0.3;
-      if(e.type==='rusher') if(Math.random()<0.008) e.vy = 0.6 + Math.random()*3.2;
-      e.y += e.vy;
-      if(e.y > H + 160) enemies.splice(i,1);
-      if(!e.boss && frame % Math.max(40, 120 - player.lv*8) === 0 && Math.random() < (e.type==='gunner'?0.6:0.28)){
-        eBullets.push({x:e.x,y:e.y+e.h/2,vx:(player.x-e.x)/120,vy:5,p:Math.floor(60 + player.lv*18)});
+    async function doConvert(){
+      const amount = parseFloat(amountInput.value || '0');
+      if(isNaN(amount) || amount <= 0){
+        converted.innerText = '結果: 0';
+        rateInfo.innerText = 'レート: -';
+        return;
       }
-      if(e.boss){
-        if(e.type==='miniboss' && frame%80===0) eBullets.push({x:e.x,y:e.y+30,vx:0,vy:6,p:180});
-        if(e.type==='midboss' && frame%60===0) for(let s=-2;s<=2;s++) eBullets.push({x:e.x+s*20,y:e.y+40,vx:s*0.6,vy:6,p:220});
-        if(e.type==='bigboss' && frame%48===0) for(let s=-4;s<=4;s++) eBullets.push({x:e.x+s*26,y:e.y+60,vx:s*0.8,vy:6,p:260});
-        if(e.type==='infboss' && frame%36===0) for(let s=-6;s<=6;s++) eBullets.push({x:e.x+s*28,y:e.y+80,vx:s*1,vy:7,p:420});
-        const pct = e.hp / e.mhp;
-        if(pct < 0.75 && !e.phase1){ e.phase1 = true; emitParticles(e.x,e.y,30,'#ffd166',8); }
-        if(pct < 0.4 && !e.phase2){ e.phase2 = true; emitParticles(e.x,e.y,40,'#ff6b6b',12); }
-      }
-      // crash collision
-      if(player.inv <= 0 && Math.abs(e.x - player.x) < e.w/2 + player.size && Math.abs(e.y - player.y) < e.h/2 + player.size){
-        player.hp -= Math.floor(900 + player.lv*50);
-        player.inv = 64;
-        shake = 18;
-        emitParticles(player.x, player.y, 12, '#fff', 8);
+      const from = fromSel.value;
+      const to = toSel.value;
+      try{
+        convertBtn.innerText = '読み込み中...'; convertBtn.disabled = true;
+        const {rate,date} = await fetchRate(from,to);
+        const result = amount * rate;
+        converted.innerText = `結果: ${result.toLocaleString(undefined,{maximumFractionDigits:6})} ${to}`;
+        rateInfo.innerText = `レート: 1 ${from} = ${rate} ${to} （${date}）`;
+      }catch(err){
+        converted.innerText = '結果: -';
+        rateInfo.innerText = 'レート取得エラー';
+        console.error(err);
+      }finally{
+        convertBtn.disabled = false; convertBtn.innerText = '変換';
       }
     }
 
-    // enemy bullets
-    for(let i=eBullets.length-1;i>=0;i--){
-      const b = eBullets[i];
-      b.x += b.vx; b.y += b.vy;
-      if(b.y > H + 200 || b.x < -200 || b.x > W + 200){ eBullets.splice(i,1); continue; }
-      if(player.inv <= 0 && Math.abs(b.x - player.x) < 18 && Math.abs(b.y - player.y) < 18){
-        player.hp -= b.p || 320;
-        player.inv = 36;
-        eBullets.splice(i,1);
-        shake = 12;
+    convertBtn.addEventListener('click',doConvert);
+
+    // allow Enter key to trigger convert
+    amountInput.addEventListener('keydown',(e)=>{
+      if(e.key === 'Enter'){
+        e.preventDefault(); doConvert();
       }
-    }
+      if(e.key === 'Backspace') return; // normal
+    });
 
-    // particles
-    if(particles.length > MAX_PARTICLES){ const rem = particles.splice(0, particles.length - MAX_PARTICLES); for(const r of rem) releaseParticleObj(r); }
-    for(let i=particles.length-1;i>=0;i--){
-      const pt = particles[i];
-      pt.x += pt.vx; pt.y += pt.vy; pt.l -= 0.02;
-      if(pt.l <= 0){ releaseParticleObj(pt); particles.splice(i,1); }
-    }
-
-    // potions update & pickup
-    for(let i=potions.length-1;i>=0;i--){
-      const p = potions[i]; p.y += p.vy;
-      if(p.y > H + 40){ potions.splice(i,1); continue; }
-      if(Math.abs(p.x - player.x) < (p.size/2 + player.size) && Math.abs(p.y - player.y) < (p.size/2 + player.size)){
-        player.hp = player.mhp;
-        potionPicked();
-        potions.splice(i,1);
-        emitParticles(player.x, player.y, 28, '#7bed9f', 12);
-        updateHUD();
-      }
-    }
-
-    if(potionCooldown > 0) potionCooldown--;
-    if(player.inv > 0) player.inv--;
-    if(player.hp <= 0){ player.hp = 0; onGameOver(); }
-  }
-
-  // Drawing (kept clear & robust)
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    ctx.save();
-    if(shake > 0){ ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake); shake *= 0.9; }
-
-    // background stars (light)
-    for(let s=0;s<120;s++){ ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect((s*73)%W, (s*47 + frame) % H, 1,1); }
-
-    // potions
-    for(const p of potions){
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      const g = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, p.size*1.6);
-      g.addColorStop(0, 'rgba(123,237,159,0.9)'); g.addColorStop(0.6, 'rgba(123,237,159,0.18)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size*1.6, 0, Math.PI*2); ctx.fill();
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = '#7bed9f'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size/2, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-    }
-
-    // enemies
-    for(const e of enemies) drawEnemy(e);
-
-    // player bullets
-    for(const b of pBullets) drawPlayerBullet(b);
-
-    // enemy bullets
-    for(const b of eBullets){ ctx.fillStyle = '#ff4d4d'; ctx.beginPath(); ctx.arc(b.x, b.y, 6, 0, Math.PI*2); ctx.fill(); }
-
-    // particles
-    for(const pt of particles){ ctx.globalAlpha = pt.l; ctx.fillStyle = pt.c; ctx.fillRect(pt.x-1, pt.y-1, 3,3); ctx.globalAlpha = 1; }
-
-    // player
-    drawPlayer(player.x, player.y);
-
-    ctx.restore();
-  }
-
-  function drawPlayer(x,y){
-    ctx.save(); ctx.translate(x,y);
-    ctx.fillStyle = '#bfc7ff'; ctx.beginPath(); ctx.moveTo(0,-28); ctx.lineTo(16,-6); ctx.lineTo(16,24); ctx.lineTo(-16,24); ctx.lineTo(-16,-6); ctx.closePath(); ctx.fill();
-    ctx.restore();
-  }
-
-  function drawEnemy(e){
-    ctx.save(); ctx.translate(e.x, e.y);
-    if(e.boss){
-      ctx.fillStyle = e.c; ctx.fillRect(-e.w/2, -e.h/2, e.w, e.h);
-      ctx.fillStyle = '#ff4d4d'; ctx.fillRect(-40, -e.h/2 - 18, Math.max(0, (e.hp / e.mhp) * 80), 6);
-    } else {
-      ctx.fillStyle = e.c; ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(10,-6); ctx.lineTo(10,18); ctx.lineTo(-10,18); ctx.lineTo(-10,-6); ctx.closePath(); ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  function drawPlayerBullet(b){
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, (b.sz || 6) * 3);
-    g.addColorStop(0, b.c); g.addColorStop(0.6, b.c + '33'); g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, (b.sz || 6) * 3, 0, Math.PI*2); ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = b.c; ctx.fillRect(b.x - (b.sz||6)/2, b.y, (b.sz||6), (b.sz||6)*1.8);
-    ctx.restore();
-  }
-
-  // HUD update
-  function updateHUD(){
-    scoreUI.innerText = score.toLocaleString();
-    hpBar.style.width = ((player.hp / player.mhp) * 100).toFixed(2) + '%';
-    lvUI.innerText = player.lv > 15 ? 'PILOT RANK: ∞' : (player.lv === 1 ? 'PILOT RANK: LV.1' : 'PILOT RANK: LV.' + player.lv);
-    if(debugPanel.style.display === 'block'){
-      debugPanel.innerText = `frame:${frame} running:${running} bullets:${pBullets.length} enemies:${enemies.length} particles:${particles.length} potions:${potions.length} score:${score}`;
-    }
-  }
-
-  // Input & controls — simple and robust
-  window.addEventListener('mousemove', e => { player.x = e.clientX; player.y = e.clientY; });
-  startBtn.addEventListener('click', () => {
-    // Start simple: toggle running only. Overlay visibility handled separately.
-    running = !running;
-    console.log('[SG] start pressed. running =', running);
-    document.getElementById('start').innerText = running ? 'PAUSE' : 'RESUME';
-    overlay.style.opacity = running ? 0 : 1;
-    if(running){ console.log('[SG] game started'); }
-  });
-  document.getElementById('reset').addEventListener('click', () => { resetGame(); console.log('[SG] reset pressed'); });
-
-  function resetGame(){
-    player.hp = player.mhp = 10000; player.lv = 1;
-    score = 0; enemies.length = 0; pBullets.length = 0; eBullets.length = 0; particles.length = 0; potions.length = 0;
-    running = false; frame = 0; enemyId = 1; potionCooldown = 0;
-    updateShopUI(); updateHUD();
-    overlayMain.innerText = 'READY'; overlay.style.opacity = 1;
-    document.getElementById('start').innerText = 'ENGAGE';
-  }
-
-  // Main tick — ALWAYS running (protects against silent death)
-  function tick(){
-    try {
-      // update always attempted; actual updates gated by running flag
-      updateGame();
-    } catch(err){
-      console.error('[SG] error in updateGame:', err);
-      running = false;
-      overlayMain.innerText = 'ERROR';
-      overlay.style.opacity = 1;
-    }
-    try {
-      draw();
-    } catch(err){
-      console.error('[SG] error in draw:', err);
-    }
-    requestAnimationFrame(tick);
-  }
-
-  // Expose debug API & helpers for manual verification
-  window._SG = {
-    start: () => { running = true; overlay.style.opacity = 0; document.getElementById('start').innerText = 'PAUSE'; console.log('[SG] start()'); },
-    stop: () => { running = false; overlay.style.opacity = 1; document.getElementById('start').innerText = 'ENGAGE'; console.log('[SG] stop()'); },
-    spawnMob: () => { spawnMob(); console.log('[SG] spawnMob called'); },
-    spawnPotion: () => { potions.push({ id:Date.now()+Math.random(), x:40+Math.random()*(W-80), y:-40, vy:POTION_FALL, size:22 }); console.log('[SG] spawnPotion'); },
-    spawnBoss: (kind='bigboss') => { enemies.push(makeBoss(kind, player.lv)); console.log('[SG] spawnBoss', kind); },
-    state: () => ({ running, score, enemies: enemies.length, bullets: pBullets.length })
-  };
-
-  // Initialize UI and start loop
-  updateShopUI();
-  updateHUD();
-  requestAnimationFrame(tick);
-
-  // Small helper used by spawnBoss in debug API
-  function makeBoss(kind, lvl){
-    return (function(){ const b = { _id: enemyId++, type: kind, boss: true, phase: 0 };
-      if(kind==='miniboss') return Object.assign(b, { x: Math.random()*(W-200)+100, y:-220, w:160, h:80, vy:0.6, c:'#6a5acd', hp:enemyBaseHP('miniboss', lvl), mhp:enemyBaseHP('miniboss', lvl) });
-      if(kind==='midboss') return Object.assign(b, { x: Math.random()*(W-240)+120, y:-300, w:200, h:100, vy:0.45, c:'#8b0000', hp:enemyBaseHP('midboss', lvl), mhp:enemyBaseHP('midboss', lvl) });
-      if(kind==='bigboss') return Object.assign(b, { x: W/2, y:-360, w:280, h:140, vy:0.35, c:'#111', hp:enemyBaseHP('bigboss', lvl), mhp:enemyBaseHP('bigboss', lvl) });
-      return Object.assign(b, { x:W/2, y:-420, w:340, h:180, vy:0.25, c:'#2a2a6b', hp:enemyBaseHP('infboss', lvl), mhp:enemyBaseHP('infboss', lvl), inf: true });
-    })();
-  }
-
-  // End of IIFE
-})();
-</script>
+    // initialize a small placeholder
+    amountInput.value = '';
+  </script>
 </body>
 </html>
