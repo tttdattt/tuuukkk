@@ -1,268 +1,268 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>通貨換算</title>
-<style>
-:root{
-  --bg:#f5f7fb; --card:#fff; --muted:#8b95a1; --accent:#0a84ff;
-  --radius:14px; --shadow:0 6px 18px rgba(18,22,30,0.06);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-}
-html,body{height:100%;margin:0;background:var(--bg)}
-.app{max-width:1100px;margin:36px auto;padding:24px;display:flex;gap:20px;align-items:flex-start}
-.sidebar{width:320px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:14px}
-.sidebar h2{margin:0;font-size:14px;color:var(--muted);font-weight:600}
-select{appearance:none;padding:12px 14px;border-radius:10px;border:1px solid #e6e9ee;background:transparent;font-size:15px;width:100%}
-.main{flex:1;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:14px;position:relative}
-.top-row{display:flex;justify-content:space-between;align-items:center}
-.clock{font-size:12px;color:var(--muted)}
-.panel{display:flex;gap:18px;flex-wrap:wrap}
-.input-area{flex:1;display:flex;flex-direction:column;gap:10px;min-width:260px}
-.amount-display{background:#f6f8fb;border-radius:12px;padding:16px;border:1px solid #eef2f6;font-size:28px;font-weight:600;color:#0b1220;display:flex;align-items:center;justify-content:space-between}
-input[type="text"]{border:none;background:transparent;font-size:28px;font-weight:700;text-align:right;outline:none;width:220px}
-.result{font-size:18px;color:var(--muted)}
-.pad{width:320px;background:linear-gradient(180deg,#ffffff,#fbfdff);border-radius:14px;padding:12px;border:1px solid #eef2f6;box-shadow:0 4px 10px rgba(18,22,30,0.05);display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.key{padding:16px;border-radius:12px;background:transparent;border:1px solid #eef2f6;font-size:18px;font-weight:600;cursor:pointer;user-select:none}
-.key:active{transform:translateY(1px)}
-.key.confirm{grid-column:span:3;background:var(--accent);color:white;border:none}
-.key.clear{background:transparent;color:#ff6b6b}
-.muted{color:var(--muted);font-size:13px}
-.swap-btn{padding:8px 12px;border-radius:10px;border:1px solid #eef2f6;background:transparent;cursor:pointer}
-@media (max-width:900px){.app{flex-direction:column;padding:12px}.sidebar{width:100%}.pad{width:100%}}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>通貨換算</title>
+  <style>
+    :root{
+      --bg: #f2f5f9;
+      --surface: #ffffff;
+      --muted: #8a93a3;
+      --primary: #007aff;
+      --radius: 20px;
+      --shadow-lg: 0 10px 30px rgba(12,18,30,0.08);
+      --shadow-md: 0 6px 18px rgba(12,18,30,0.06);
+      --glass: rgba(255,255,255,0.6);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#eef4fb)}
+
+    .app{max-width:1100px;margin:44px auto;padding:28px;display:flex;gap:28px;align-items:flex-start}
+
+    /* Sidebar */
+    .sidebar{width:320px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:22px;display:flex;flex-direction:column;gap:18px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#eef9ff,#f0f6ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary)}
+    h2{margin:0;font-size:16px;color:#0b1220}
+    label{display:block;margin-bottom:8px;font-size:13px;color:var(--muted)}
+    select{appearance:none;padding:12px 14px;border-radius:12px;border:1px solid rgba(14,20,30,0.06);background:transparent;font-size:15px;width:100%;transition:box-shadow .18s ease}
+    select:focus{outline:none;box-shadow:0 6px 18px rgba(0,122,255,0.08)}
+
+    .swap-row{display:flex;gap:10px;align-items:center}
+    .swap-btn{padding:8px 12px;border-radius:12px;border:1px solid rgba(14,20,30,0.06);background:transparent;cursor:pointer;transition:transform .12s ease}
+    .swap-btn:hover{transform:translateY(-2px)}
+
+    .refs{margin-top:8px}
+    .refs h3{margin:8px 0 6px 0;font-size:13px;color:var(--muted)}
+    .refs a{display:block;text-decoration:none;color:var(--primary);font-size:14px;padding:6px 0;border-radius:8px}
+    .refs a:hover{background:rgba(10,122,255,0.06)}
+
+    /* Main */
+    .main{flex:1;background:linear-gradient(180deg,var(--surface),#fbfdff);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:26px;display:flex;flex-direction:column;gap:18px;position:relative}
+    .top-row{display:flex;justify-content:space-between;align-items:center}
+    .clock{font-size:13px;color:var(--muted)}
+
+    .panel{display:flex;gap:20px;flex-wrap:wrap}
+    .input-area{flex:1;display:flex;flex-direction:column;gap:12px;min-width:280px}
+
+    .amount-card{background:linear-gradient(180deg,#fcfeff,#f7fbff);border-radius:14px;padding:18px;border:1px solid rgba(14,20,30,0.04);display:flex;align-items:center;justify-content:space-between}
+    .amount-label{font-size:13px;color:var(--muted)}
+    input[type="text"]{border:none;background:transparent;font-size:30px;font-weight:700;text-align:right;outline:none;width:220px}
+
+    .meta-row{display:flex;justify-content:space-between;align-items:center}
+    .result{font-size:18px;color:#0b1220}
+    .rate-info{font-size:13px;color:var(--muted)}
+
+    /* Pad */
+    .pad{width:340px;background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(246,250,255,0.95));border-radius:16px;padding:14px;border:1px solid rgba(14,20,30,0.04);box-shadow:0 8px 22px rgba(12,18,30,0.04);display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .key{padding:16px;border-radius:12px;background:linear-gradient(180deg,#fff,#f6f9ff);border:1px solid rgba(14,20,30,0.04);font-size:17px;font-weight:700;cursor:pointer;transition:transform .08s ease,box-shadow .12s ease}
+    .key:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(12,18,30,0.06)}
+    .key:active{transform:translateY(0)}
+    .key.confirm{grid-column:span:3;background:linear-gradient(135deg,var(--primary),#004bff);color:white;border:none}
+    .key.clear{background:transparent;color:#ff4b4b}
+
+    @media (max-width:920px){.app{flex-direction:column;padding:16px}.sidebar{width:100%}.pad{width:100%}}
+  </style>
 </head>
 <body>
-<div class="app">
-  <aside class="sidebar">
-    <h2>通貨設定</h2>
-    <div>
-      <label for="from" class="muted">変換元 (From)</label>
-      <select id="from">
-        <option value="USD">USD — 米ドル</option>
-        <option value="JPY">JPY — 日本円</option>
-        <option value="EUR">EUR — ユーロ</option>
-        <option value="GBP">GBP — 英ポンド</option>
-        <option value="AUD">AUD — 豪ドル</option>
-        <option value="CAD">CAD — カナダドル</option>
-        <option value="CNY">CNY — 中国元</option>
-      </select>
-    </div>
-    <div>
-      <label for="to" class="muted">変換先 (To)</label>
-      <select id="to">
-        <option value="JPY">JPY — 日本円</option>
-        <option value="USD">USD — 米ドル</option>
-        <option value="EUR">EUR — ユーロ</option>
-        <option value="GBP">GBP — 英ポンド</option>
-        <option value="AUD">AUD — 豪ドル</option>
-        <option value="CAD">CAD — カナダドル</option>
-        <option value="CNY">CNY — 中国元</option>
-      </select>
-    </div>
-    <div class="muted">* 選択済みの通貨はもう一方では選択できません</div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <button class="swap-btn" id="swap">入れ替え</button>
-      <div class="muted">最新レートを参照</div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <div class="top-row">
-      <div>
-        <h1 style="margin:0;font-size:16px">通貨換算</h1>
-        <div class="muted" style="margin-top:6px">GitHub Pages対応（プロキシfallbackあり）</div>
-      </div>
-      <div class="clock" id="tokyoClock">--:--:--</div>
-    </div>
-
-    <div class="panel">
-      <div class="input-area">
-        <div class="amount-display">
-          <div style="flex:1;">金額</div>
-          <input id="amountInput" type="text" inputmode="decimal" placeholder="0" />
-        </div>
-
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div class="result" id="converted">結果: -</div>
-          <div class="muted" id="rateInfo">レート: -</div>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">¥</div>
+        <div>
+          <h2>通貨換算</h2>
+          <div style="font-size:12px;color:var(--muted)">シンプルで洗練されたUI</div>
         </div>
       </div>
 
       <div>
-        <div class="pad" id="numpad">
-          <button class="key">7</button><button class="key">8</button><button class="key">9</button>
-          <button class="key">4</button><button class="key">5</button><button class="key">6</button>
-          <button class="key">1</button><button class="key">2</button><button class="key">3</button>
-          <button class="key clear">C</button><button class="key">0</button><button class="key">.</button>
-          <button class="key confirm" id="convertBtn">変換</button>
+        <label for="from">変換元</label>
+        <select id="from">
+          <option value="USD">USD — 米ドル</option>
+          <option value="JPY">JPY — 日本円</option>
+          <option value="EUR">EUR — ユーロ</option>
+          <option value="GBP">GBP — 英ポンド</option>
+          <option value="AUD">AUD — 豪ドル</option>
+          <option value="CAD">CAD — カナダドル</option>
+          <option value="CNY">CNY — 中国元</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="to">変換先</label>
+        <select id="to">
+          <option value="JPY">JPY — 日本円</option>
+          <option value="USD">USD — 米ドル</option>
+          <option value="EUR">EUR — ユーロ</option>
+          <option value="GBP">GBP — 英ポンド</option>
+          <option value="AUD">AUD — 豪ドル</option>
+          <option value="CAD">CAD — カナダドル</option>
+          <option value="CNY">CNY — 中国元</option>
+        </select>
+      </div>
+
+      <div class="swap-row">
+        <button class="swap-btn" id="swap">入れ替え</button>
+        <div style="flex:1"></div>
+      </div>
+
+      <div class="refs">
+        <h3>参照サイト</h3>
+        <a href="https://api.exchangerate.host" target="_blank" rel="noopener">https://api.exchangerate.host</a>
+        <a href="https://www.frankfurter.app" target="_blank" rel="noopener">https://www.frankfurter.app</a>
+        <a href="https://open.er-api.com" target="_blank" rel="noopener">https://open.er-api.com</a>
+        <a href="https://api.allorigins.win" target="_blank" rel="noopener">https://api.allorigins.win</a>
+        <a href="https://corsproxy.io" target="_blank" rel="noopener">https://corsproxy.io</a>
+        <a href="https://api.codetabs.com" target="_blank" rel="noopener">https://api.codetabs.com</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="top-row">
+        <div>
+          <h1 style="margin:0;font-size:16px">通貨換算</h1>
+        </div>
+        <div class="clock" id="tokyoClock">--:--:--</div>
+      </div>
+
+      <div class="panel">
+        <div class="input-area">
+          <div class="amount-card">
+            <div>
+              <div class="amount-label">金額</div>
+            </div>
+            <input id="amountInput" type="text" inputmode="decimal" placeholder="0" />
+          </div>
+
+          <div class="meta-row">
+            <div class="result" id="converted">結果: -</div>
+            <div class="rate-info" id="rateInfo">レート: -</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="pad" id="numpad">
+            <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+            <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+            <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+            <button class="key clear">C</button><button class="key">0</button><button class="key">.</button>
+            <button class="key confirm" id="convertBtn">変換</button>
+          </div>
         </div>
       </div>
-    </div>
-  </main>
-</div>
 
-<script>
-/* --- DOM --- */
-const fromSel = document.getElementById('from');
-const toSel = document.getElementById('to');
-const amountInput = document.getElementById('amountInput');
-const converted = document.getElementById('converted');
-const rateInfo = document.getElementById('rateInfo');
-const convertBtn = document.getElementById('convertBtn');
-const swapBtn = document.getElementById('swap');
+    </main>
+  </div>
 
-/* --- Helpers --- */
-function sanitizeNumberInput(val){
-  const s = String(val).replace(/[^0-9.]/g,'');
-  const parts = s.split('.');
-  if(parts.length<=1) return parts[0].slice(0,16);
-  return parts[0].slice(0,12) + '.' + parts.slice(1).join('').slice(0,6);
-}
-function updateDisabledOptions(){
-  const from = fromSel.value, to = toSel.value;
-  Array.from(fromSel.options).forEach(o=>o.disabled=false);
-  Array.from(toSel.options).forEach(o=>o.disabled=false);
-  const fromOpt = toSel.querySelector(`option[value="${from}"]`);
-  const toOpt = fromSel.querySelector(`option[value="${to}"]`);
-  if(fromOpt) fromOpt.disabled = true;
-  if(toOpt) toOpt.disabled = true;
-}
+  <script>
+    // DOM
+    const fromSel = document.getElementById('from');
+    const toSel = document.getElementById('to');
+    const amountInput = document.getElementById('amountInput');
+    const converted = document.getElementById('converted');
+    const rateInfo = document.getElementById('rateInfo');
+    const convertBtn = document.getElementById('convertBtn');
+    const swapBtn = document.getElementById('swap');
 
-/* Tokyo clock */
-function updateClock(){
-  const now = new Date();
-  const tokyo = new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Tokyo'}).format(now);
-  document.getElementById('tokyoClock').innerText = tokyo + ' (Tokyo)';
-}
-setInterval(updateClock,1000); updateClock();
-
-/* Numeric pad */
-document.getElementById('numpad').addEventListener('click',(e)=>{
-  if(!e.target.classList.contains('key')) return;
-  const key = e.target.innerText;
-  if(key === 'C'){ amountInput.value=''; converted.innerText='結果: -'; rateInfo.innerText='レート: -'; return; }
-  if(key === '.') { if(!amountInput.value.includes('.')) amountInput.value = amountInput.value ? amountInput.value + '.' : '0.'; }
-  else if(key === '変換') return;
-  else amountInput.value = (amountInput.value === '0') ? key : amountInput.value + key;
-  amountInput.value = sanitizeNumberInput(amountInput.value);
-});
-
-/* keyboard input */
-amountInput.addEventListener('input', e => {
-  const v = sanitizeNumberInput(e.target.value);
-  if(v !== e.target.value) e.target.value = v;
-});
-
-/* swap */
-swapBtn.addEventListener('click', ()=>{
-  const a = fromSel.value; fromSel.value = toSel.value; toSel.value = a;
-  updateDisabledOptions(); converted.innerText='結果: -'; rateInfo.innerText='レート: -';
-});
-updateDisabledOptions();
-fromSel.addEventListener('change', updateDisabledOptions);
-toSel.addEventListener('change', updateDisabledOptions);
-
-/* --- Fetch with timeout --- */
-function fetchWithTimeout(url, opts = {}, timeout = 8000){
-  return new Promise((resolve,reject)=>{
-    const timer = setTimeout(()=>{ reject(new Error('timeout')); }, timeout);
-    fetch(url, opts).then(res => {
-      clearTimeout(timer);
-      if(!res.ok) return reject(new Error('http ' + res.status));
-      return res.json().then(json => resolve(json)).catch(err => reject(err));
-    }).catch(err => { clearTimeout(timer); reject(err); });
-  });
-}
-
-/* --- parse returned JSON for rate robustly --- */
-function extractRateFromData(data, symbol){
-  if(!data) return null;
-  // common shapes
-  if(data.rates && typeof data.rates[symbol] !== 'undefined') return data.rates[symbol];
-  if(data.conversion_rates && typeof data.conversion_rates[symbol] !== 'undefined') return data.conversion_rates[symbol];
-  // frankfurter returns rates object with symbol key (or single value)
-  if(data.rates && Object.keys(data.rates).length === 1) return Object.values(data.rates)[0];
-  // open.er-api style: data.rates maybe exists
-  if(data.rates && Object.keys(data.rates).length) {
-    if(typeof data.rates[symbol] !== 'undefined') return data.rates[symbol];
-  }
-  return null;
-}
-
-/* --- try fetch sequence: direct endpoints then proxies --- */
-const endpoints = [
-  ep => `https://api.exchangerate.host/latest?base=${encodeURIComponent(ep.base)}&symbols=${encodeURIComponent(ep.symbol)}`,
-  ep => `https://api.frankfurter.app/latest?from=${encodeURIComponent(ep.base)}&to=${encodeURIComponent(ep.symbol)}`,
-  ep => `https://open.er-api.com/v6/latest/${encodeURIComponent(ep.base)}`
-];
-
-const proxyPrefixes = [
-  'https://api.allorigins.win/raw?url=',
-  'https://corsproxy.io/?',
-  'https://api.codetabs.com/v1/proxy?quest=',
-  'https://thingproxy.freeboard.io/fetch/'
-];
-
-async function tryDirectAndProxy(base, symbol){
-  // try each endpoint directly
-  for(const fn of endpoints){
-    const url = fn({base, symbol});
-    try{
-      const data = await fetchWithTimeout(url, {}, 7000);
-      const rate = extractRateFromData(data, symbol);
-      if(rate !== null) return {rate, date: data.date || data.time_last_update_utc || data.time_last_updated || ''};
-    }catch(e){
-      console.warn('direct failed', url, e.message || e);
-      // try next
+    // sanitize
+    function sanitizeNumberInput(val){
+      const s = String(val).replace(/[^0-9.]/g,'');
+      const parts = s.split('.');
+      if(parts.length<=1) return parts[0].slice(0,16);
+      return parts[0].slice(0,12) + '.' + parts.slice(1).join('').slice(0,6);
     }
-  }
 
-  // try proxies for each endpoint
-  for(const fn of endpoints){
-    const url = fn({base, symbol});
-    for(const p of proxyPrefixes){
-      const proxyUrl = p + encodeURIComponent(url);
-      try{
-        const data = await fetchWithTimeout(proxyUrl, {}, 9000);
-        const rate = extractRateFromData(data, symbol);
-        if(rate !== null) return {rate, date: data.date || data.time_last_update_utc || data.time_last_updated || ''};
-      }catch(e){
-        console.warn('proxy failed', proxyUrl, e.message || e);
-        // next proxy
+    function updateDisabledOptions(){
+      const from = fromSel.value, to = toSel.value;
+      Array.from(fromSel.options).forEach(o=>o.disabled=false);
+      Array.from(toSel.options).forEach(o=>o.disabled=false);
+      const fromOpt = toSel.querySelector(`option[value="${from}"]`);
+      const toOpt = fromSel.querySelector(`option[value="${to}"]`);
+      if(fromOpt) fromOpt.disabled = true;
+      if(toOpt) toOpt.disabled = true;
+    }
+
+    // Tokyo clock
+    function updateClock(){
+      const now = new Date();
+      const tokyo = new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Tokyo'}).format(now);
+      document.getElementById('tokyoClock').innerText = tokyo;
+    }
+    setInterval(updateClock,1000); updateClock();
+
+    // pad
+    document.getElementById('numpad').addEventListener('click',(e)=>{
+      if(!e.target.classList.contains('key')) return;
+      const key = e.target.innerText;
+      if(key === 'C'){ amountInput.value=''; converted.innerText='結果: -'; rateInfo.innerText='レート: -'; return; }
+      if(key === '.') { if(!amountInput.value.includes('.')) amountInput.value = amountInput.value ? amountInput.value + '.' : '0.'; }
+      else if(key === '変換') return;
+      else amountInput.value = (amountInput.value === '0') ? key : amountInput.value + key;
+      amountInput.value = sanitizeNumberInput(amountInput.value);
+    });
+
+    amountInput.addEventListener('input',e=>{ const v = sanitizeNumberInput(e.target.value); if(v !== e.target.value) e.target.value = v; });
+
+    swapBtn.addEventListener('click',()=>{ const a = fromSel.value; fromSel.value = toSel.value; toSel.value = a; updateDisabledOptions(); converted.innerText='結果: -'; rateInfo.innerText='レート: -'; });
+    updateDisabledOptions(); fromSel.addEventListener('change',updateDisabledOptions); toSel.addEventListener('change',updateDisabledOptions);
+
+    // fetch helpers
+    function fetchWithTimeout(url, opts={}, timeout=8000){
+      return new Promise((resolve,reject)=>{
+        const timer = setTimeout(()=>{ reject(new Error('timeout')); }, timeout);
+        fetch(url, opts).then(res=>{ clearTimeout(timer); if(!res.ok) return reject(new Error('http ' + res.status)); return res.json().then(json=>resolve(json)).catch(err=>reject(err)); }).catch(err=>{ clearTimeout(timer); reject(err); });
+      });
+    }
+
+    function extractRateFromData(data, symbol){
+      if(!data) return null;
+      if(data.rates && typeof data.rates[symbol] !== 'undefined') return data.rates[symbol];
+      if(data.conversion_rates && typeof data.conversion_rates[symbol] !== 'undefined') return data.conversion_rates[symbol];
+      if(data.rates && Object.keys(data.rates).length === 1) return Object.values(data.rates)[0];
+      return null;
+    }
+
+    const endpoints = [
+      ep => `https://api.exchangerate.host/latest?base=${encodeURIComponent(ep.base)}&symbols=${encodeURIComponent(ep.symbol)}`,
+      ep => `https://api.frankfurter.app/latest?from=${encodeURIComponent(ep.base)}&to=${encodeURIComponent(ep.symbol)}`,
+      ep => `https://open.er-api.com/v6/latest/${encodeURIComponent(ep.base)}`
+    ];
+
+    const proxyPrefixes = [
+      'https://api.allorigins.win/raw?url=',
+      'https://corsproxy.io/?',
+      'https://api.codetabs.com/v1/proxy?quest=',
+      'https://thingproxy.freeboard.io/fetch/'
+    ];
+
+    async function tryDirectAndProxy(base, symbol){
+      for(const fn of endpoints){
+        const url = fn({base,symbol});
+        try{ const data = await fetchWithTimeout(url,{},7000); const rate = extractRateFromData(data,symbol); if(rate !== null) return {rate,date:data.date||data.time_last_update_utc||data.time_last_updated||''}; }catch(e){ console.warn('direct failed',url,e.message||e); }
       }
+      for(const fn of endpoints){
+        const url = fn({base,symbol});
+        for(const p of proxyPrefixes){
+          const proxyUrl = p + encodeURIComponent(url);
+          try{ const data = await fetchWithTimeout(proxyUrl,{},9000); const rate = extractRateFromData(data,symbol); if(rate !== null) return {rate,date:data.date||data.time_last_update_utc||data.time_last_updated||''}; }catch(e){ console.warn('proxy failed',proxyUrl,e.message||e); }
+        }
+      }
+      throw new Error('all endpoints and proxies failed');
     }
-  }
 
-  // all failed
-  throw new Error('all endpoints and proxies failed');
-}
+    async function doConvert(){
+      const amount = parseFloat(amountInput.value || '0');
+      if(isNaN(amount) || amount <= 0){ converted.innerText='結果: 0'; rateInfo.innerText='レート: -'; return; }
+      const base = fromSel.value, symbol = toSel.value;
+      try{ convertBtn.disabled = true; convertBtn.innerText = '読み込み中...'; const {rate,date} = await tryDirectAndProxy(base,symbol); const result = amount * rate; converted.innerText = `結果: ${result.toLocaleString(undefined,{maximumFractionDigits:6})} ${symbol}`; rateInfo.innerText = `1 ${base} = ${rate} ${symbol}${date? ' ('+date+')':''}`; }
+      catch(err){ console.error('fetch rate failed',err); converted.innerText='結果: -'; rateInfo.innerText='レート取得エラー'; }
+      finally{ convertBtn.disabled = false; convertBtn.innerText = '変換'; }
+    }
 
-/* --- conversion logic --- */
-async function doConvert(){
-  const amount = parseFloat(amountInput.value || '0');
-  if(isNaN(amount) || amount <= 0){ converted.innerText='結果: 0'; rateInfo.innerText='レート: -'; return; }
-  const base = fromSel.value, symbol = toSel.value;
-  try{
-    convertBtn.disabled = true; convertBtn.innerText = '読み込み中...';
-    const {rate, date} = await tryDirectAndProxy(base, symbol);
-    const result = amount * rate;
-    converted.innerText = `結果: ${result.toLocaleString(undefined,{maximumFractionDigits:6})} ${symbol}`;
-    rateInfo.innerText = `レート: 1 ${base} = ${rate} ${symbol}${date? ' ('+date+')':''}`;
-  }catch(err){
-    console.error('fetch rate failed', err);
-    converted.innerText = '結果: -';
-    rateInfo.innerText = 'レート取得エラー（プロキシ含む全失敗）';
-  }finally{
-    convertBtn.disabled = false; convertBtn.innerText = '変換';
-  }
-}
-
-convertBtn.addEventListener('click', doConvert);
-amountInput.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); doConvert(); } });
-
-/* Helpful note: if errors persist on GitHub Pages, consider using a lightweight server-side proxy (recommended for production) */
-</script>
+    convertBtn.addEventListener('click',doConvert);
+    amountInput.addEventListener('keydown',e=>{ if(e.key === 'Enter'){ e.preventDefault(); doConvert(); } });
+  </script>
 </body>
 </html>
