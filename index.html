@@ -1,268 +1,250 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="light">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>通貨換算</title>
-  <style>
-    :root{
-      --bg: #f2f5f9;
-      --surface: #ffffff;
-      --muted: #8a93a3;
-      --primary: #007aff;
-      --radius: 20px;
-      --shadow-lg: 0 10px 30px rgba(12,18,30,0.08);
-      --shadow-md: 0 6px 18px rgba(12,18,30,0.06);
-      --glass: rgba(255,255,255,0.6);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#eef4fb)}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>通貨換算</title>
+<style>
+:root {
+  --bg-image: linear-gradient(135deg, #85a1f2 0%, #f2cfef 100%);
+  --glass-bg: rgba(255, 255, 255, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-inner-glow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+  --card-bg: rgba(255, 255, 255, 0.6);
+  --text-main: #1d1d1f;
+  --text-muted: #48484a;
+  --accent: #1d1d1f;
+  --accent-fg: #ffffff;
+  --key-bg: rgba(255, 255, 255, 0.4);
+  --shadow: 0 12px 40px rgba(0,0,0,0.08);
+  --font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Rounded Mplus 1c", sans-serif;
+}
 
-    .app{max-width:1100px;margin:44px auto;padding:28px;display:flex;gap:28px;align-items:flex-start}
+[data-theme="dark"] {
+  --bg-image: linear-gradient(135deg, #09090b 0%, #1e1e2f 100%);
+  --glass-bg: rgba(30, 30, 35, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-inner-glow: inset 0 0 10px rgba(255, 255, 255, 0.05);
+  --card-bg: rgba(40, 40, 45, 0.7);
+  --text-main: #f5f5f7;
+  --text-muted: #aeaeb2;
+  --accent: #ffffff;
+  --accent-fg: #000000;
+  --key-bg: rgba(255, 255, 255, 0.1);
+  --shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
 
-    /* Sidebar */
-    .sidebar{width:320px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:22px;display:flex;flex-direction:column;gap:18px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#eef9ff,#f0f6ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary)}
-    h2{margin:0;font-size:16px;color:#0b1220}
-    label{display:block;margin-bottom:8px;font-size:13px;color:var(--muted)}
-    select{appearance:none;padding:12px 14px;border-radius:12px;border:1px solid rgba(14,20,30,0.06);background:transparent;font-size:15px;width:100%;transition:box-shadow .18s ease}
-    select:focus{outline:none;box-shadow:0 6px 18px rgba(0,122,255,0.08)}
+* { box-sizing: border-box; font-family: var(--font-family); }
 
-    .swap-row{display:flex;gap:10px;align-items:center}
-    .swap-btn{padding:8px 12px;border-radius:12px;border:1px solid rgba(14,20,30,0.06);background:transparent;cursor:pointer;transition:transform .12s ease}
-    .swap-btn:hover{transform:translateY(-2px)}
+html, body {
+  height: 100%; margin: 0;
+  background: var(--bg-image); background-attachment: fixed;
+  color: var(--text-main);
+  display: flex; align-items: center; justify-content: center;
+}
 
-    .refs{margin-top:8px}
-    .refs h3{margin:8px 0 6px 0;font-size:13px;color:var(--muted)}
-    .refs a{display:block;text-decoration:none;color:var(--primary);font-size:14px;padding:6px 0;border-radius:8px}
-    .refs a:hover{background:rgba(10,122,255,0.06)}
+.app { 
+  max-width: 1200px; width: 100%; padding: 20px; 
+  display: flex; gap: 24px; align-items: stretch; justify-content: center;
+}
 
-    /* Main */
-    .main{flex:1;background:linear-gradient(180deg,var(--surface),#fbfdff);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:26px;display:flex;flex-direction:column;gap:18px;position:relative}
-    .top-row{display:flex;justify-content:space-between;align-items:center}
-    .clock{font-size:13px;color:var(--muted)}
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow), var(--glass-inner-glow);
+  border-radius: 32px;
+}
 
-    .panel{display:flex;gap:20px;flex-wrap:wrap}
-    .input-area{flex:1;display:flex;flex-direction:column;gap:12px;min-width:280px}
+/* アニメーション設定 */
+button, .key, select {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s, box-shadow 0.3s;
+  cursor: pointer; outline: none;
+}
+button:hover, .key:hover, select:hover { transform: scale(1.05); }
+button:active, .key:active, select:active { transform: scale(0.92); transition: transform 0.1s; }
 
-    .amount-card{background:linear-gradient(180deg,#fcfeff,#f7fbff);border-radius:14px;padding:18px;border:1px solid rgba(14,20,30,0.04);display:flex;align-items:center;justify-content:space-between}
-    .amount-label{font-size:13px;color:var(--muted)}
-    input[type="text"]{border:none;background:transparent;font-size:30px;font-weight:700;text-align:right;outline:none;width:220px}
+/* サイドバー */
+.sidebar { width: 280px; padding: 24px; display: flex; flex-direction: column; gap: 16px; flex-shrink: 0; }
+select {
+  appearance: none; width: 100%; padding: 14px;
+  background: var(--card-bg); color: var(--text-main);
+  border: 1px solid var(--glass-border); border-radius: 18px;
+  font-size: 16px; font-weight: 800;
+}
 
-    .meta-row{display:flex;justify-content:space-between;align-items:center}
-    .result{font-size:18px;color:#0b1220}
-    .rate-info{font-size:13px;color:var(--muted)}
+/* メインエリア: 横幅をしっかり確保 */
+.main { flex: 1; padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+.top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
 
-    /* Pad */
-    .pad{width:340px;background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(246,250,255,0.95));border-radius:16px;padding:14px;border:1px solid rgba(14,20,30,0.04);box-shadow:0 8px 22px rgba(12,18,30,0.04);display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .key{padding:16px;border-radius:12px;background:linear-gradient(180deg,#fff,#f6f9ff);border:1px solid rgba(14,20,30,0.04);font-size:17px;font-weight:700;cursor:pointer;transition:transform .08s ease,box-shadow .12s ease}
-    .key:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(12,18,30,0.06)}
-    .key:active{transform:translateY(0)}
-    .key.confirm{grid-column:span:3;background:linear-gradient(135deg,var(--primary),#004bff);color:white;border:none}
-    .key.clear{background:transparent;color:#ff4b4b}
+.panel { display: flex; gap: 30px; align-items: flex-start; }
 
-    @media (max-width:920px){.app{flex-direction:column;padding:16px}.sidebar{width:100%}.pad{width:100%}}
-  </style>
+/* 入力・結果エリアを固定幅で広げる */
+.input-area { flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 400px; }
+
+.amount-display, .result-bar {
+  width: 100%; /* 横幅を固定 */
+  background: var(--card-bg); border-radius: 24px; padding: 25px;
+  box-shadow: var(--glass-inner-glow);
+  border: 1px solid var(--glass-border);
+}
+
+.result-bar { background: var(--glass-bg); }
+
+#amountInput {
+  border:none; background:transparent; color:var(--text-main);
+  font-size:38px; font-weight:800; text-align:right; outline:none;
+  width:100%; word-break: break-all; overflow-wrap: anywhere;
+}
+
+.result { font-size: 30px; font-weight: 800; line-height: 1.2; text-align: right; }
+
+/* テンキー */
+.pad { width: 320px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; flex-shrink: 0; }
+.key {
+  padding: 20px; border-radius: 22px;
+  background: var(--key-bg); color: var(--text-main);
+  border: 1px solid var(--glass-border);
+  font-size: 24px; font-weight: 800; user-select: none;
+}
+
+.key.confirm { grid-column: span 3; background: var(--accent); color: var(--accent-fg); border: none; font-size: 22px; }
+.key.clear { color: #ff3b30; }
+
+.swap-btn {
+  padding: 14px; border-radius: 18px; border: 1px solid var(--glass-border);
+  background: var(--card-bg); color: var(--text-main); font-weight: 800;
+}
+
+.theme-toggle-btn {
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  color: var(--text-main); width: 48px; height: 48px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+
+@media (max-width:1000px) {
+  .app { flex-direction: column; align-items: center; overflow-y: auto; padding: 15px; }
+  .panel { flex-direction: column; width: 100%; align-items: center; }
+  .input-area { min-width: 100%; }
+  .sidebar, .pad, .main { width: 100%; }
+  html, body { height: auto; display: block; }
+}
+</style>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">¥</div>
-        <div>
-          <h2>通貨換算</h2>
-          <div style="font-size:12px;color:var(--muted)">シンプルで洗練されたUI</div>
+
+<div class="app">
+  <aside class="sidebar glass-panel">
+    <h2 style="margin:0; font-size:12px; color:var(--text-muted); font-weight:900; letter-spacing: 1px;">通貨設定</h2>
+    <select id="from"><option>取得中...</option></select>
+    <select id="to"><option>取得中...</option></select>
+    <button class="swap-btn" id="swap">⇅ 入れ替え</button>
+  </aside>
+
+  <main class="main glass-panel">
+    <div class="top-row">
+      <h1 style="margin:0; font-size:22px; font-weight:900; letter-spacing: -1px;">通貨換算</h1>
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div id="tokyoClock" style="font-size:14px; font-weight:800; color:var(--text-muted);">--:--:--</div>
+        <button class="theme-toggle-btn" id="themeToggle">☀</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="input-area">
+        <div class="amount-display">
+          <div style="font-size:12px; color:var(--text-muted); font-weight:900; margin-bottom:8px;">金額</div>
+          <div id="amountInput" contenteditable="true" inputmode="decimal">0</div>
+        </div>
+        <div class="result-bar">
+          <div style="font-size:12px; color:var(--text-muted); font-weight:900; margin-bottom:8px;">換算結果</div>
+          <div class="result" id="converted">0.00</div>
+          <div id="rateInfo" style="font-size:14px; font-weight:600; opacity:0.8; text-align: right; margin-top: 10px;">レート取得中...</div>
         </div>
       </div>
-
-      <div>
-        <label for="from">変換元</label>
-        <select id="from">
-          <option value="USD">USD — 米ドル</option>
-          <option value="JPY">JPY — 日本円</option>
-          <option value="EUR">EUR — ユーロ</option>
-          <option value="GBP">GBP — 英ポンド</option>
-          <option value="AUD">AUD — 豪ドル</option>
-          <option value="CAD">CAD — カナダドル</option>
-          <option value="CNY">CNY — 中国元</option>
-        </select>
+      <div class="pad" id="numpad">
+        <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+        <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+        <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+        <button class="key clear">C</button><button class="key">0</button><button class="key">.</button>
+        <button class="key confirm" id="convertBtn">換算</button>
       </div>
+    </div>
+  </main>
+</div>
 
-      <div>
-        <label for="to">変換先</label>
-        <select id="to">
-          <option value="JPY">JPY — 日本円</option>
-          <option value="USD">USD — 米ドル</option>
-          <option value="EUR">EUR — ユーロ</option>
-          <option value="GBP">GBP — 英ポンド</option>
-          <option value="AUD">AUD — 豪ドル</option>
-          <option value="CAD">CAD — カナダドル</option>
-          <option value="CNY">CNY — 中国元</option>
-        </select>
-      </div>
+<script>
+const fromSel = document.getElementById('from'), toSel = document.getElementById('to');
+const amountInput = document.getElementById('amountInput'), converted = document.getElementById('converted');
+const rateInfo = document.getElementById('rateInfo'), convertBtn = document.getElementById('convertBtn');
+const swapBtn = document.getElementById('swap'), themeToggle = document.getElementById('themeToggle');
 
-      <div class="swap-row">
-        <button class="swap-btn" id="swap">入れ替え</button>
-        <div style="flex:1"></div>
-      </div>
+themeToggle.onclick = () => {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  themeToggle.innerText = isDark ? '☀' : '☾';
+};
 
-      <div class="refs">
-        <h3>参照サイト</h3>
-        <a href="https://api.exchangerate.host" target="_blank" rel="noopener">https://api.exchangerate.host</a>
-        <a href="https://www.frankfurter.app" target="_blank" rel="noopener">https://www.frankfurter.app</a>
-        <a href="https://open.er-api.com" target="_blank" rel="noopener">https://open.er-api.com</a>
-        <a href="https://api.allorigins.win" target="_blank" rel="noopener">https://api.allorigins.win</a>
-        <a href="https://corsproxy.io" target="_blank" rel="noopener">https://corsproxy.io</a>
-        <a href="https://api.codetabs.com" target="_blank" rel="noopener">https://api.codetabs.com</a>
-      </div>
-    </aside>
+function updateClock(){
+  const t = new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Tokyo'}).format(new Date());
+  document.getElementById('tokyoClock').innerText = t;
+}
+setInterval(updateClock, 1000); updateClock();
 
-    <main class="main">
-      <div class="top-row">
-        <div>
-          <h1 style="margin:0;font-size:16px">通貨換算</h1>
-        </div>
-        <div class="clock" id="tokyoClock">--:--:--</div>
-      </div>
-
-      <div class="panel">
-        <div class="input-area">
-          <div class="amount-card">
-            <div>
-              <div class="amount-label">金額</div>
-            </div>
-            <input id="amountInput" type="text" inputmode="decimal" placeholder="0" />
-          </div>
-
-          <div class="meta-row">
-            <div class="result" id="converted">結果: -</div>
-            <div class="rate-info" id="rateInfo">レート: -</div>
-          </div>
-        </div>
-
-        <div>
-          <div class="pad" id="numpad">
-            <button class="key">7</button><button class="key">8</button><button class="key">9</button>
-            <button class="key">4</button><button class="key">5</button><button class="key">6</button>
-            <button class="key">1</button><button class="key">2</button><button class="key">3</button>
-            <button class="key clear">C</button><button class="key">0</button><button class="key">.</button>
-            <button class="key confirm" id="convertBtn">変換</button>
-          </div>
-        </div>
-      </div>
-
-    </main>
-  </div>
-
-  <script>
-    // DOM
-    const fromSel = document.getElementById('from');
-    const toSel = document.getElementById('to');
-    const amountInput = document.getElementById('amountInput');
-    const converted = document.getElementById('converted');
-    const rateInfo = document.getElementById('rateInfo');
-    const convertBtn = document.getElementById('convertBtn');
-    const swapBtn = document.getElementById('swap');
-
-    // sanitize
-    function sanitizeNumberInput(val){
-      const s = String(val).replace(/[^0-9.]/g,'');
-      const parts = s.split('.');
-      if(parts.length<=1) return parts[0].slice(0,16);
-      return parts[0].slice(0,12) + '.' + parts.slice(1).join('').slice(0,6);
-    }
-
-    function updateDisabledOptions(){
-      const from = fromSel.value, to = toSel.value;
-      Array.from(fromSel.options).forEach(o=>o.disabled=false);
-      Array.from(toSel.options).forEach(o=>o.disabled=false);
-      const fromOpt = toSel.querySelector(`option[value="${from}"]`);
-      const toOpt = fromSel.querySelector(`option[value="${to}"]`);
-      if(fromOpt) fromOpt.disabled = true;
-      if(toOpt) toOpt.disabled = true;
-    }
-
-    // Tokyo clock
-    function updateClock(){
-      const now = new Date();
-      const tokyo = new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Tokyo'}).format(now);
-      document.getElementById('tokyoClock').innerText = tokyo;
-    }
-    setInterval(updateClock,1000); updateClock();
-
-    // pad
-    document.getElementById('numpad').addEventListener('click',(e)=>{
-      if(!e.target.classList.contains('key')) return;
-      const key = e.target.innerText;
-      if(key === 'C'){ amountInput.value=''; converted.innerText='結果: -'; rateInfo.innerText='レート: -'; return; }
-      if(key === '.') { if(!amountInput.value.includes('.')) amountInput.value = amountInput.value ? amountInput.value + '.' : '0.'; }
-      else if(key === '変換') return;
-      else amountInput.value = (amountInput.value === '0') ? key : amountInput.value + key;
-      amountInput.value = sanitizeNumberInput(amountInput.value);
-    });
-
-    amountInput.addEventListener('input',e=>{ const v = sanitizeNumberInput(e.target.value); if(v !== e.target.value) e.target.value = v; });
-
-    swapBtn.addEventListener('click',()=>{ const a = fromSel.value; fromSel.value = toSel.value; toSel.value = a; updateDisabledOptions(); converted.innerText='結果: -'; rateInfo.innerText='レート: -'; });
-    updateDisabledOptions(); fromSel.addEventListener('change',updateDisabledOptions); toSel.addEventListener('change',updateDisabledOptions);
-
-    // fetch helpers
-    function fetchWithTimeout(url, opts={}, timeout=8000){
-      return new Promise((resolve,reject)=>{
-        const timer = setTimeout(()=>{ reject(new Error('timeout')); }, timeout);
-        fetch(url, opts).then(res=>{ clearTimeout(timer); if(!res.ok) return reject(new Error('http ' + res.status)); return res.json().then(json=>resolve(json)).catch(err=>reject(err)); }).catch(err=>{ clearTimeout(timer); reject(err); });
+async function loadCurrencyList() {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+    const codes = Object.keys(data.rates).sort();
+    [fromSel, toSel].forEach(select => {
+      select.innerHTML = '';
+      codes.forEach(code => {
+        const opt = document.createElement('option');
+        opt.value = code; opt.innerText = code;
+        select.appendChild(opt);
       });
-    }
+    });
+    fromSel.value = 'USD'; toSel.value = 'JPY';
+  } catch(e) { rateInfo.innerText = '通信エラー'; }
+}
+loadCurrencyList();
 
-    function extractRateFromData(data, symbol){
-      if(!data) return null;
-      if(data.rates && typeof data.rates[symbol] !== 'undefined') return data.rates[symbol];
-      if(data.conversion_rates && typeof data.conversion_rates[symbol] !== 'undefined') return data.conversion_rates[symbol];
-      if(data.rates && Object.keys(data.rates).length === 1) return Object.values(data.rates)[0];
-      return null;
-    }
+document.getElementById('numpad').onclick = (e) => {
+  const btn = e.target.closest('.key');
+  if(!btn || btn.id === 'convertBtn') return;
+  let val = btn.innerText, cur = amountInput.innerText;
+  if(btn.classList.contains('clear')){
+    amountInput.innerText = '0'; converted.innerText = '0.00'; return;
+  }
+  if(val === '.') {
+    if(!cur.includes('.')) amountInput.innerText = cur + '.';
+  } else {
+    amountInput.innerText = (cur === '0') ? val : cur + val;
+  }
+};
 
-    const endpoints = [
-      ep => `https://api.exchangerate.host/latest?base=${encodeURIComponent(ep.base)}&symbols=${encodeURIComponent(ep.symbol)}`,
-      ep => `https://api.frankfurter.app/latest?from=${encodeURIComponent(ep.base)}&to=${encodeURIComponent(ep.symbol)}`,
-      ep => `https://open.er-api.com/v6/latest/${encodeURIComponent(ep.base)}`
-    ];
+swapBtn.onclick = () => {
+  const tmp = fromSel.value; fromSel.value = toSel.value; toSel.value = tmp;
+};
 
-    const proxyPrefixes = [
-      'https://api.allorigins.win/raw?url=',
-      'https://corsproxy.io/?',
-      'https://api.codetabs.com/v1/proxy?quest=',
-      'https://thingproxy.freeboard.io/fetch/'
-    ];
-
-    async function tryDirectAndProxy(base, symbol){
-      for(const fn of endpoints){
-        const url = fn({base,symbol});
-        try{ const data = await fetchWithTimeout(url,{},7000); const rate = extractRateFromData(data,symbol); if(rate !== null) return {rate,date:data.date||data.time_last_update_utc||data.time_last_updated||''}; }catch(e){ console.warn('direct failed',url,e.message||e); }
-      }
-      for(const fn of endpoints){
-        const url = fn({base,symbol});
-        for(const p of proxyPrefixes){
-          const proxyUrl = p + encodeURIComponent(url);
-          try{ const data = await fetchWithTimeout(proxyUrl,{},9000); const rate = extractRateFromData(data,symbol); if(rate !== null) return {rate,date:data.date||data.time_last_update_utc||data.time_last_updated||''}; }catch(e){ console.warn('proxy failed',proxyUrl,e.message||e); }
-        }
-      }
-      throw new Error('all endpoints and proxies failed');
-    }
-
-    async function doConvert(){
-      const amount = parseFloat(amountInput.value || '0');
-      if(isNaN(amount) || amount <= 0){ converted.innerText='結果: 0'; rateInfo.innerText='レート: -'; return; }
-      const base = fromSel.value, symbol = toSel.value;
-      try{ convertBtn.disabled = true; convertBtn.innerText = '読み込み中...'; const {rate,date} = await tryDirectAndProxy(base,symbol); const result = amount * rate; converted.innerText = `結果: ${result.toLocaleString(undefined,{maximumFractionDigits:6})} ${symbol}`; rateInfo.innerText = `1 ${base} = ${rate} ${symbol}${date? ' ('+date+')':''}`; }
-      catch(err){ console.error('fetch rate failed',err); converted.innerText='結果: -'; rateInfo.innerText='レート取得エラー'; }
-      finally{ convertBtn.disabled = false; convertBtn.innerText = '変換'; }
-    }
-
-    convertBtn.addEventListener('click',doConvert);
-    amountInput.addEventListener('keydown',e=>{ if(e.key === 'Enter'){ e.preventDefault(); doConvert(); } });
-  </script>
+async function doConvert(){
+  const amount = parseFloat(amountInput.innerText || '0');
+  if(isNaN(amount) || amount <= 0) return;
+  try {
+    convertBtn.disabled = true; convertBtn.innerText = '...';
+    const res = await fetch(`https://open.er-api.com/v6/latest/${fromSel.value}`);
+    const data = await res.json();
+    const rate = data.rates[toSel.value];
+    const result = amount * rate;
+    converted.innerText = `${result.toLocaleString(undefined,{maximumFractionDigits:4})} ${toSel.value}`;
+    const d = new Date(data.time_last_update_utc * 1000).toLocaleString('ja-JP');
+    rateInfo.innerHTML = `1 ${fromSel.value} = ${rate} ${toSel.value} | 更新: ${d}`;
+  } catch(e) { rateInfo.innerText = '取得失敗'; }
+  finally { convertBtn.disabled = false; convertBtn.innerText = '換算'; }
+}
+convertBtn.onclick = doConvert;
+</script>
 </body>
 </html>
